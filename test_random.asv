@@ -1,0 +1,130 @@
+clear, clc
+
+%%% ==========================
+%%%   MAIN INPUT
+%%% ==========================
+
+feature_types = {'ToA', 'Amplitude', 'SignalEnergy'};
+variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
+
+%%% ==========================
+
+%----WINDOW----
+main_folder = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data";
+output_folder = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data";
+
+if ~exist(output_folder, 'dir')
+    mkdir(output_folder);
+end
+%%% ==========================
+%%%    MODE 1: SINGLE CASE
+%%% ==========================
+ case_mode = "single"; 
+ case_name = 'stlham_p1_tank_new'; 
+ case_folders = struct('name', case_name); 
+
+%%% ==========================
+%%%    MODE 2: AUTOMATIC MODE
+%%% ==========================
+case_folders = dir(main_folder);
+case_folders = case_folders([case_folders.isdir]);
+case_folders = case_folders(~ismember({case_folders.name}, {'.', '..','Old','Flat','Tank'}));
+case_mode = "all";
+
+%%% ==========================
+%%%   PROCESS SELECTED CASES
+%%% ==========================
+parfor c = 1:length(case_folders)
+    case_name = case_folders(c).name;
+    case_path = fullfile(main_folder, case_name);
+    file_list = dir(fullfile(case_path, '*.txt'));
+
+    %% Extracting-------------------------------------
+    impact_type_match = regexp(case_name, '(stl|sil|rub|srub)', 'match');
+    if isempty(impact_type_match)
+        warning(['Skipping unknown impact type in case name: ', case_name]);
+        continue;
+    end
+    impact_type = impact_type_match{1};
+    
+    probe_match = regexp(case_name, 'p(\d+)', 'tokens');
+    if ~isempty(probe_match)
+        probe = str2double(probe_match{1}{1});
+    else
+        error('Probe number not found in case name.');
+    end
+
+    loc_numbers = zeros(length(file_list), 1);
+    for i = 1:length(file_list)
+        loc_str = regexp(file_list(i).name, 'l(\d+)', 'tokens');
+        if ~isempty(loc_str)
+            loc_numbers(i) = str2double(loc_str{1});
+        else
+            loc_numbers(i) = Inf;
+        end
+    end
+
+    [~, sorted_indices] = sort(loc_numbers);
+    file_list = file_list(sorted_indices);
+
+    % Initialize storage
+    all_features = [];
+    distance_features = [];
+    force_values = [];
+
+    %% Process each impact file
+    all_features = []; % Initialize correctly as 2D matrix
+    
+    for i = 1:length(file_list)
+        filename = fullfile(case_path, file_list(i).name);
+        [time, sensor_data, force_data] = read_labview_file(filename);
+    
+        % Extract features
+        distance = extract_distance_features(filename);
+        features = extract_features(time, sensor_data / probe, impact_type, feature_types); % (num_sensors × num_features)
+        force_N = max(convert_voltage_to_force(force_data, impact_type));
+    
+        % Store extracted data
+        distance_features = [distance_features; distance];
+        all_features = [all_features; features(:)']; % Flatten & append as a row vector
+        force_values = [force_values; force_N];
+    
+        [~, filename, ~] = fileparts(filename);
+        disp(['Processed file ', num2str(i), ' ', char(filename)]);
+    end
+    
+    % Skip saving if no data is extracted
+    if isempty(all_features)
+        warning(['No data extracted for case: ', case_name]);
+        continue;
+    end
+    
+    % Combine final dataset
+    final_features = [distance_features, all_features, force_values];
+    %%
+    % Adjust column names to match grouped feature structure
+     [num_sensors, num_features_per_sensor] = size(features);
+
+    feature_column_names = {};
+    for f = 1:num_features_per_sensor
+        for s = 1:num_sensors
+            feature_column_names = [feature_column_names, {[feature_types{f} '_S' num2str(s)]}];
+        end
+    end
+
+    variable_names = [{'Loc', 'Loc_X', 'Loc_Y'}, feature_column_names, {'Force_N'}];
+
+    % Save to CSV
+    output_file = fullfile(output_folder, ['Features_' case_name '.csv']);
+    feature_table = array2table(final_features, 'VariableNames', variable_names);
+    writetable(feature_table, output_file);
+
+    disp(['Completed case: ', case_name, ' (Mode: ', case_mode, ')']);
+    disp(['Saved to: ', output_file]);
+
+    if case_mode == "single"
+        break;
+    end
+    % Default Column
+    variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
+end
