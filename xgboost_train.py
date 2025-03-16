@@ -55,28 +55,38 @@ X = df[feature_columns]
 # Selecting target variables (impact location coordinates)
 y = df[["Loc_X", "Loc_Y"]]  # Multi-output regression targets
 
-# Split data into training and testing sets (90% train, 10% test)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
+# Split data: 80% train, 10% validation, 10% test
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-# XGBoost Parameters
+# -------------- XGBoost PARAMETERS --------------------------
 xgb_params = {
     'objective': "reg:squarederror",
-    'n_estimators': 500,  # Increase trees for better learning
-    'learning_rate': 0.02,  # Lower learning rate for stability
-    'max_depth': 8,  # Deeper trees for better feature learning
-    'subsample': 0.8,
+    'n_estimators': 450,  # Increase trees for better learning
+    'learning_rate': 0.05,  # Lower learning rate for stability
+    'max_depth': 7,  # Deeper trees for better feature learning
+    'subsample': 0.6,
     'colsample_bytree': 0.8,
-    'reg_lambda': 2.0,  # Regularization to prevent overfitting
-    'reg_alpha': 0.5 
+    'reg_lambda': 2.5,  # Regularization to prevent overfitting
+    'reg_alpha': 0.3 # Regularization to prevent overfitting
 }
 
-# Train XGBoost for Loc_X, Loc_Y, Loc_Z
-xgb_model_x = XGBRegressor(**xgb_params)
-xgb_model_y = XGBRegressor(**xgb_params)
+# -------------- TRAINING XGBoost --------------------------
+# Train XGBoost for Loc_X
+xgb_model_x = xgb.XGBRegressor(**xgb_params)
+xgb_model_x.fit(
+    X_train, y_train["Loc_X"],
+    eval_set=[(X_val, y_val["Loc_X"])],
+    verbose=False
+)
 
-xgb_model_x.fit(X_train, y_train["Loc_X"])
-xgb_model_y.fit(X_train, y_train["Loc_Y"])
-
+# Train XGBoost for Loc_Y
+xgb_model_y = xgb.XGBRegressor(**xgb_params)
+xgb_model_y.fit(
+    X_train, y_train["Loc_Y"],
+    eval_set=[(X_val, y_val["Loc_Y"])],
+    verbose=False
+)
 
 # Make predictions
 y_pred_x_xgb = xgb_model_x.predict(X_test)
