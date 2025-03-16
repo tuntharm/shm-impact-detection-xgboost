@@ -61,12 +61,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_
 # XGBoost Parameters
 xgb_params = {
     'objective': "reg:squarederror",
-    'n_estimators': 300,  # Increase trees for better learning
-    'learning_rate': 0.01,  # Lower learning rate for stability
+    'n_estimators': 500,  # Increase trees for better learning
+    'learning_rate': 0.02,  # Lower learning rate for stability
     'max_depth': 8,  # Deeper trees for better feature learning
-    'subsample': 0.9,
-    'colsample_bytree': 0.9,
-    'reg_lambda': 1.5  # Regularization to prevent overfitting
+    'subsample': 0.8,
+    'colsample_bytree': 0.8,
+    'reg_lambda': 2.0,  # Regularization to prevent overfitting
+    'reg_alpha': 0.5 
 }
 
 # Train XGBoost for Loc_X, Loc_Y, Loc_Z
@@ -92,8 +93,6 @@ rmse_total_xgb = np.sqrt(
 )
 print("Training complete.")
 
-print(y_pred_x_xgb)
-print(y_test)
 #------------------------------------------------
 #------------------------------------------------
 # Store RMSE as an array [X, Y, Z, Total]
@@ -118,5 +117,5 @@ plt.title("Top 10 Feature Importances for Loc_Y")
 #plot_cylinder_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
 plot_flat_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
 filename = 'predictions_XGB.mat'
-save_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, filename, rmse_xgb)
+# save_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, filename, rmse_xgb)
 

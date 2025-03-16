@@ -1,4 +1,4 @@
-function features = extract_features(time, sensor_data, impact_type, feature_types)
+function features = extract_features(time, sensor_data, impact_type, feature_types,force_N)
     num_sensors = size(sensor_data, 2);
     num_features_per_sensor = length(feature_types); % Dynamic based on input
     features = NaN(num_sensors, num_features_per_sensor); % Pre-allocate (each row = 1 sensor)
@@ -20,9 +20,9 @@ function features = extract_features(time, sensor_data, impact_type, feature_typ
                     toa_values(i) = compute_ToA(filtered_signal, time, impact_type); % Store ToA for later
                     features(i, f) = toa_values(i); % Temporarily store
                 case 'amplitude'
-                    features(i, f) = compute_amplitude(filtered_signal);
+                    features(i, f) = compute_amplitude(filtered_signal)/force_N;
                 case 'signalenergy'
-                    features(i, f) = compute_energy(filtered_signal, impact_type);
+                    features(i, f) = compute_energy(filtered_signal, impact_type)/force_N;
                 case 'wavelength'
                     features(i, f) = compute_wavelength(filtered_signal, time);
                 case 'moderatios'

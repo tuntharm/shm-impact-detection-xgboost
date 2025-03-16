@@ -79,8 +79,8 @@ for c = 1:length(case_folders)
 
         % Extract features
         distance = extract_distance_features(filename); % Now 1×3
-        features = extract_features(time, sensor_data / probe, impact_type, feature_types); % (num_sensors × num_features)
         force_N = max(convert_voltage_to_force(force_data, impact_type));
+        features = extract_features(time, sensor_data / probe, impact_type, feature_types,force_N); % (num_sensors × num_features)
 
         % Store extracted data
         distance_features(i, :) = distance; % Matches correct shape (1×3)

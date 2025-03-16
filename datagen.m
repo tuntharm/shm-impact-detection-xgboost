@@ -10,8 +10,8 @@ variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
 %%% ==========================
 
 %----WINDOW----
-main_folder = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data";
-output_folder = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data";
+main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Tank";
+output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data";
 
 if ~exist(output_folder, 'dir')
     mkdir(output_folder);
@@ -19,16 +19,16 @@ end
 
 %%% ==========================
 %%%    MODE 1: SINGLE CASE
-%%% ==========================
-case_mode = "single"; 
-case_name = 'stlham_p1_tank_new'; 
-case_folders = struct('name', case_name);
+% %%% ==========================
+% case_mode = "single"; 
+% case_name = 'stlham_p1_tank_new'; 
+% case_folders = struct('name', case_name);
 %%% ==========================
 %%%    MODE 2: AUTOMATIC MODE
 %%% ==========================
 case_folders = dir(main_folder);
 case_folders = case_folders([case_folders.isdir]);
-case_folders = case_folders(~ismember({case_folders.name}, {'.', '..','Old','Flat','Tank'}));
+case_folders = case_folders(~ismember({case_folders.name}, {'.', '..'}));
 case_mode = "all";
 
 %%% ==========================
@@ -86,8 +86,8 @@ for c = 1:length(case_folders)
 
         % Extract features
         distance = extract_distance_features(filename); % Now 1×3
-        features = extract_features(time, sensor_data / probe, impact_type, feature_types); % (num_sensors × num_features)
         force_N = max(convert_voltage_to_force(force_data, impact_type));
+        features = extract_features(time, sensor_data / probe, impact_type, feature_types,force_N); % (num_sensors × num_features)
 
         % Store extracted data
         distance_features(i, :) = distance; % Matches correct shape (1×3)

@@ -14,13 +14,17 @@ clear, clc, close all;
 %filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/stlham_p1_tank/stlham_l1_p1_tank_1.txt'
 %filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
 %PC -------
+%Flat
+filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Flat\stlham_p1_flat\stlham_l1_p1_flat_1.txt";
+%Tank
 %filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_2.txt";
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\silham_p1_tank_new\silham_l1_p1_tank_1.txt"
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\rubham_p10_tank_new\rubham_l1_p10_tank_1.txt";
+filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\silham_p1_tank_new\silham_l6_p1_tank_1.txt"
+%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\rubham_p10_tank\rubham_l1_p10_tank_1.txt";
 %filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\srubham_p10_tank\srubham_l1_p10_tank_1.txt"
+filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\rubham_p10_tank_new\rubham_l16_p10_tank_1.txt"
 
 %------ Imperial PC----
-filename = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_2.txt"
+%filename = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_2.txt"
 
 
 % Read data from the selected file
@@ -104,12 +108,12 @@ toc
 %     % Extract raw signal
 %     raw_signal = sensor_data(:, i);
 %     % Apply bandpass filter
-%     filtered_signal = bandpass_filter(raw_signal, time);
+%     filtered_signal = lowpass_filter(raw_signal, time);
 %     % Compute sampling frequency
 %     fs = 1 / mean(diff(time)); 
 %     % Plot scalogram
 %     figure;
-%     cwt(filtered_signal, 'amor', fs);
+%     cwt(raw_signal, 'amor', fs);
 %     title(['Scalogram - Sensor ' num2str(i)]);
 % 
 % end

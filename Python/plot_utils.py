@@ -114,13 +114,13 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
 
 
 
+
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 
 def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
     """
-    Plots a flattened cylindrical representation (2D) with grid and visualizes true vs predicted positions.
+    Plots a flattened cylindrical representation (2D) with a structured grid and visualizes true vs predicted positions.
 
     Parameters:
         y_test (DataFrame): True impact locations with columns ["Loc_X", "Loc_Y"].
@@ -136,24 +136,24 @@ def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
     x_true = y_test["Loc_X"].to_numpy()  # Axial positions
     y_true = y_test["Loc_Y"].to_numpy()  # Circumferential positions (already unrolled)
 
-    # Grid lines
-    num_h_lines = 7  # Horizontal grid divisions (Circumferential)
-    num_v_lines = 5  # Vertical grid divisions (Axial)
+    # Define grid spacing
+    num_h_lines = 7  # Horizontal grid divisions (exclude top & bottom)
+    num_v_lines = 5  # Vertical grid divisions (exclude edges)
 
-    # Generate grid line positions
-    y_grid_lines = np.linspace(-height/2, height/2, num_h_lines + 2)  # Horizontal grid lines
-    x_grid_lines = np.linspace(0, z_max, num_v_lines + 2)  # Vertical grid lines
+    # Manually defining grid positions
+    y_grid_positions = np.linspace(-height, 0, num_h_lines + 2)[1:-1]  # Exclude top & bottom
+    x_grid_positions = np.linspace(-z_max, 0, num_v_lines + 2)[1:-1]  # Exclude left & right edges
 
     # Create 2D plot
     plt.figure(figsize=(10, 6))
 
-    # Plot horizontal grid lines
-    for y_h in y_grid_lines:
-        plt.plot([0, z_max], [y_h, y_h], 'k-', linewidth=0.5)  # Black lines
+    # Plot manually defined horizontal grid lines
+    for y_h in y_grid_positions:
+        plt.plot([-z_max, 0], [y_h, y_h], 'k-', linewidth=0.5, alpha=0.7)  # Black horizontal lines
 
-    # Plot vertical grid lines
-    for x_v in x_grid_lines:
-        plt.plot([x_v, x_v], [-height/2, height/2], 'k-', linewidth=0.5)  # Black lines
+    # Plot manually defined vertical grid lines
+    for x_v in x_grid_positions:
+        plt.plot([x_v, x_v], [-height, 0], 'k-', linewidth=0.5, alpha=0.7)  # Black vertical lines
 
     # Define sensor positions (mapping to 2D)
     sensor_positions = np.array([
@@ -161,10 +161,13 @@ def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
         [0, -2 * (2 * np.pi * r / 8)],   # S2
         [0, -4 * (2 * np.pi * r / 8)],   # S3
         [0, -6 * (2 * np.pi * r / 8)],   # S4
+        [0, -8 * (2 * np.pi * r / 8)],   # S1 
         [-z_max, 0],                     # S5
         [-z_max, -2 * (2 * np.pi * r / 8)],  # S6
         [-z_max, -4 * (2 * np.pi * r / 8)],  # S7
-        [-z_max, -6 * (2 * np.pi * r / 8)]   # S8
+        [-z_max, -6 * (2 * np.pi * r / 8)],   # S8
+        [-z_max, -8 * (2 * np.pi * r / 8)]   # S6
+
     ])
 
     # Plot black squares at sensor positions
@@ -186,7 +189,10 @@ def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
     plt.ylabel("Circumferential Position (Unwrapped Y)")
     plt.title("True vs Predicted Positions (Flattened Cylinder)")
     plt.xlim(-z_max, 0)
-    plt.ylim(-height,0 )
+    plt.ylim(-height, 0)
     plt.legend()
-    plt.grid(False)  # Default grid is disabled since we created custom lines
+    
+    # **Disable automatic grid to remove grey lines**
+    plt.grid(False) 
+    
     plt.show()

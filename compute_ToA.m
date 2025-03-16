@@ -45,7 +45,7 @@ function ToA = extract_toa_nset(signal, time)
     norm_env = envelope / max(envelope);
 
     % Detect first crossing of threshold (2.5%)
-    threshold = 0.025;
+    threshold = 0.02;
     idx = find(norm_env > threshold, 1, 'first');
 
     % Return ToA
