@@ -5,7 +5,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
-from plot_utils import plot_flat_predictions
+from plot_utils import plot_cylinder_predictions
+from plot_utils import plot_plate_predictions
 from savefile import save_predictions
 import os
 import glob
@@ -17,7 +18,7 @@ import glob
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
@@ -53,38 +54,38 @@ feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
 X = df[feature_columns]
 
 # Selecting target variables (impact location coordinates)
-y = df[["Loc_X", "Loc_Y"]]  # Multi-output regression targets
+y = df[["theta", "z"]]  # Multi-output regression targets
 
 # Split data: 80% train, 10% validation, 10% test
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.05, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
 # -------------- XGBoost PARAMETERS --------------------------
 xgb_params = {
     'objective': "reg:squarederror",
-    'n_estimators': 450,  # Increase trees for better learning
-    'learning_rate': 0.05,  # Lower learning rate for stability
-    'max_depth': 7,  # Deeper trees for better feature learning
+    'n_estimators': 500,  # Increase trees for better learning
+    'learning_rate': 0.02,  # Lower learning rate for stability
+    'max_depth': 9,  # Deeper trees for better feature learning
     'subsample': 0.6,
     'colsample_bytree': 0.8,
-    'reg_lambda': 2.5,  # Regularization to prevent overfitting
-    'reg_alpha': 0.3 # Regularization to prevent overfitting
+    'reg_lambda': 3,  # Regularization to prevent overfitting
+    'reg_alpha': 0.5 # Regularization to prevent overfitting
 }
 
 # -------------- TRAINING XGBoost --------------------------
 # Train XGBoost for Loc_X
 xgb_model_x = xgb.XGBRegressor(**xgb_params)
 xgb_model_x.fit(
-    X_train, y_train["Loc_X"],
-    eval_set=[(X_val, y_val["Loc_X"])],
+    X_train, y_train["theta"],
+    eval_set=[(X_val, y_val["z"])],
     verbose=False
 )
 
 # Train XGBoost for Loc_Y
 xgb_model_y = xgb.XGBRegressor(**xgb_params)
 xgb_model_y.fit(
-    X_train, y_train["Loc_Y"],
-    eval_set=[(X_val, y_val["Loc_Y"])],
+    X_train, y_train["z"],
+    eval_set=[(X_val, y_val["z"])],
     verbose=False
 )
 
@@ -93,12 +94,12 @@ y_pred_x_xgb = xgb_model_x.predict(X_test)
 y_pred_y_xgb = xgb_model_y.predict(X_test)
 
 # Compute RMSE
-rmse_x_xgb = np.sqrt(mean_squared_error(y_test["Loc_X"], y_pred_x_xgb))
-rmse_y_xgb = np.sqrt(mean_squared_error(y_test["Loc_Y"], y_pred_y_xgb))
+rmse_x_xgb = np.sqrt(mean_squared_error(y_test["theta"], y_pred_x_xgb))
+rmse_y_xgb = np.sqrt(mean_squared_error(y_test["z"], y_pred_y_xgb))
 rmse_total_xgb = np.sqrt(
     np.mean(
-        (y_test["Loc_X"] - y_pred_x_xgb) ** 2 +
-        (y_test["Loc_Y"] - y_pred_y_xgb) ** 2 
+        (y_test["theta"] - y_pred_x_xgb) ** 2 +
+        (y_test["z"] - y_pred_y_xgb) ** 2 
     )
 )
 print("Training complete.")
@@ -107,25 +108,26 @@ print("Training complete.")
 #------------------------------------------------
 # Store RMSE as an array [X, Y, Z, Total]
 rmse_xgb = np.array([rmse_x_xgb, rmse_y_xgb, rmse_total_xgb])
-print(f"RMSE for Loc_X: {rmse_x_xgb:.4f}")
-print(f"RMSE for Loc_Y: {rmse_y_xgb:.4f}")
+print(f"RMSE for Loc_theta: {rmse_x_xgb:.4f}")
+print(f"RMSE for Loc_Z: {rmse_y_xgb:.4f}")
 
 #plt.figure(figsize=(10, 6))
 xgb.plot_importance(xgb_model_x, importance_type="weight", max_num_features=10)
-plt.title("Top 10 Feature Importances for Loc_X")
+plt.title("Top 10 Feature Importances for Loc_theta")
 #plt.show()
 
 #plt.figure(figsize=(10, 6))
 xgb.plot_importance(xgb_model_y, importance_type="weight", max_num_features=10)
-plt.title("Top 10 Feature Importances for Loc_Y")
+plt.title("Top 10 Feature Importances for Loc_Z")
 #plt.show()
 
 
 #------------------------------------------------
 
 ## VISUALISATION
-#plot_cylinder_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
-plot_flat_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
+plot_cylinder_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
+#plot_tankflatten_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
+#plot_plate_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb) #For plate
 filename = 'predictions_XGB.mat'
-# save_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, filename, rmse_xgb)
+save_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, filename, rmse_xgb)
 

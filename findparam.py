@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
-from plot_utils import plot_flat_predictions
+from plot_utils import plot_plate_predictions
 from savefile import save_predictions
 import os
 import glob
@@ -19,7 +19,7 @@ import glob
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/plate"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]

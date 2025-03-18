@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_max=45):
+
+def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45):
     """
     Plots a 3D cylinder with a grid and visualizes true vs predicted positions.
 
     Parameters:
-        y_test (DataFrame): True impact locations with columns ["Loc_X", "Loc_Y", "Loc_Z"].
-        y_pred_x (array): Predicted X coordinates.
-        y_pred_y (array): Predicted Y coordinates.
+        y_test (DataFrame): True impact locations with columns ["theta", "z"].
+        y_pred_theta (array): Predicted theta values (radians).
         y_pred_z (array): Predicted Z coordinates.
         r (float): Radius of the cylinder.
         z_max (float): Maximum height of the cylinder.
@@ -24,8 +24,8 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
 
     # Define sensor positions
     sensor_positions = np.array([
-        [11.5, 0, 0], [-11.5, 0, 0], [0, 11.5, 0], [0, -11.5, 0],  # At z=0
-        [11.5, 0, z_max], [-11.5, 0, z_max], [0, 11.5, z_max], [0, -11.5, z_max]  # At z=z_max
+        [r, 0, 0], [-r, 0, 0], [0, r, 0], [0, -r, 0],  # At z=0
+        [r, 0, z_max], [-r, 0, z_max], [0, r, z_max], [0, -r, z_max]  # At z=z_max
     ])
 
     # Function to draw squares
@@ -33,8 +33,8 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
         """Draws a square on the given axis."""
         half_size = size / 2
         square_x = [x - half_size, x + half_size, x + half_size, x - half_size, x - half_size]
-        square_z = [z - half_size, z - half_size, z + half_size, z + half_size, z - half_size]
         square_y = [y, y, y, y, y]
+        square_z = [z - half_size, z - half_size, z + half_size, z + half_size, z - half_size]
         ax.plot(square_x, square_y, square_z, color="black", linewidth=2)
 
     # Create 3D plot
@@ -69,14 +69,21 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
     for x, y, z in sensor_positions:
         draw_square(ax, x, y, z, size=2)
 
-    # Plot true positions
-    ax.scatter(y_test["Loc_X"], y_test["Loc_Y"], y_test["Loc_Z"], color="blue", label="True Position", s=40)
+    # **Plot true positions**
+    true_x = np.cos(y_test["theta"]) * r
+    true_y = np.sin(y_test["theta"]) * r
+    true_z = y_test["z"]
 
-    # Plot predicted positions
-    ax.scatter(y_pred_x, y_pred_y, y_pred_z, color="red", label="Predicted Position", s=40)
+    ax.scatter(true_x, true_y, true_z, color="blue", label="True Position", s=40)
 
-    # Draw grey dashed lines connecting true and predicted positions
-    for tx, ty, tz, px, py, pz in zip(y_test["Loc_X"], y_test["Loc_Y"], y_test["Loc_Z"], y_pred_x, y_pred_y, y_pred_z):
+    # **Plot predicted positions**
+    pred_x = np.cos(y_pred_theta) * r
+    pred_y = np.sin(y_pred_theta) * r
+    pred_z = y_pred_z
+    ax.scatter(pred_x, pred_y, pred_z, color="red", label="Predicted Position", s=40)
+
+    # **Draw grey dashed lines connecting true and predicted positions**
+    for tx, ty, tz, px, py, pz in zip(true_x, true_y, true_z, pred_x, pred_y, pred_z):
         ax.plot([tx, px], [ty, py], [tz, pz], linestyle="dashed", color="grey", alpha=0.6)
 
     # Function to set equal axis ratio
@@ -102,9 +109,9 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
     set_axes_equal(ax)
 
     # Labels and legend
-    ax.set_xlabel("Loc_X")
-    ax.set_ylabel("Loc_Y")
-    ax.set_zlabel("Loc_Z")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
     ax.set_title("True vs Predicted Positions on Cylinder with Grid")
     ax.legend()
 
@@ -115,10 +122,11 @@ def plot_cylinder_predictions(y_test, y_pred_x, y_pred_y, y_pred_z, r=11.55, z_m
 
 
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
+def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
     """
     Plots a flattened cylindrical representation (2D) with a structured grid and visualizes true vs predicted positions.
 
@@ -196,3 +204,27 @@ def plot_flat_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
     plt.grid(False) 
     
     plt.show()
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+def plot_plate_predictions(y_test, y_pred_x, y_pred_y):
+    ## XGB--------------------------------------------------
+    plt.figure(figsize=(8, 6))
+    plt.scatter(y_test["Loc_X"], y_test["Loc_Y"], color="blue", label="True Position")
+    plt.scatter(y_pred_x, y_pred_y, color="red", label="Predicted Position (XGBoost)")
+
+    # Draw grey dashed lines connecting true and predicted positions
+    for true_x, true_y, pred_x, pred_y in zip(y_test["Loc_X"], y_test["Loc_Y"], y_pred_x, y_pred_y):
+        plt.plot([true_x, pred_x], [true_y, pred_y], linestyle="dashed", color="grey", alpha=0.6)
+
+    plt.xlabel("Loc_X")
+    plt.ylabel("Loc_Y")
+    plt.title("True vs Predicted Positions (XGBoost)")
+    plt.xlim((-80,80))
+    plt.ylim((-60,60))
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    
