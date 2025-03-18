@@ -17,7 +17,8 @@ function features = extract_features(time, sensor_data, impact_type, feature_typ
             % Compute the feature based on the feature name
             switch lower(feature_name)
                 case 'toa'
-                    features(i, f) = compute_ToA(filtered_signal, time, impact_type); 
+                    toa_values(i) = compute_ToA(filtered_signal, time, impact_type); % Store ToA for later
+                    features(i, f) = toa_values(i); % Temporarily store
                 case 'amplitude'
                     features(i, f) = compute_amplitude(filtered_signal);
                 case 'signalenergy'
@@ -33,7 +34,7 @@ function features = extract_features(time, sensor_data, impact_type, feature_typ
         end
     end
 
-    % Normalise ToA and Amplitude
+    % Normalize ToA column directly in the feature matrix
     toa_idx = find(strcmpi(feature_types, 'toa')); 
     if ~isempty(toa_idx) 
         min_ToA = min(features(:, toa_idx), [], 'omitnan'); % Get min ToA
@@ -42,6 +43,7 @@ function features = extract_features(time, sensor_data, impact_type, feature_typ
     amp_idx = find(strcmpi(feature_types, 'amplitude')); 
     if ~isempty(amp_idx)
         max_amp = max(abs(features(:, amp_idx)), [], 'omitnan'); % Get max amplitude
+
         % Avoid division by zero or NaN issues
         max_amp(max_amp == 0 | isnan(max_amp)) = 1; % Set to 1 to prevent division error
         features(:, amp_idx) = features(:, amp_idx) ./ max_amp; % Normalize amplitude

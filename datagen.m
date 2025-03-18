@@ -10,8 +10,8 @@ variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
 %%% ==========================
 
 %----WINDOW----
-main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Tank";
-output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data";
+main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\plate";
+output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data\plate";
 
 if ~exist(output_folder, 'dir')
     mkdir(output_folder);
@@ -28,7 +28,7 @@ end
 %%% ==========================
 case_folders = dir(main_folder);
 case_folders = case_folders([case_folders.isdir]);
-case_folders = case_folders(~ismember({case_folders.name}, {'.', '..'}));
+case_folders = case_folders(~ismember({case_folders.name}, {'.', '..','old'}));
 case_mode = "all";
 
 %%% ==========================

@@ -16,7 +16,7 @@ function filtered_signal = bandpass_filter(signal, time)
         warning('Signal is almost constant, skipping filtering.');
         filtered_signal = signal; % Return original signal
         return;
-    end
+    end    
 
     % Design Butterworth bandpass filter
     [b, a] = butter(4, [f_low, f_high] / (fs / 2), 'bandpass');

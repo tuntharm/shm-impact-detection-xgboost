@@ -64,7 +64,16 @@ r = 11.55;
 width = 45;             % Horizontal length
 height = 2 * pi * r; % Vertical length
 
-
+S_positions = [
+    0, 0;                              % S1
+    0, -2 * (2 * pi * r / 8);          % S2
+    0, -4 * (2 * pi * r / 8);          % S3
+    0, -6 * (2 * pi * r / 8);          % S4
+    -width, 0;                         % S5
+    -width, -2 * (2 * pi * r / 8);     % S6
+    -width, -4 * (2 * pi * r / 8);     % S7
+    -width, -6 * (2 * pi * r / 8);      % S8
+];
 
 S_positions_cir = [
 0,0; 
@@ -75,37 +84,21 @@ S_positions_cir = [
 -width, -2 * (2 * pi * r / 8);     % S6
 -width, -4 * (2 * pi * r / 8);     % S7
 -width, 2 * (2 * pi * r / 8);      % S8
-];
+]
 for i = 1:num_sensors
     dS(i) = sqrt((-7.5-S_positions_cir(i,1))^2+S_positions_cir(i,2)^2)-7.5;
     V(i) = dS(i)/dToA(i);
 end
 
 for i = 1:num_sensors;
-    angle(i) = atan(S_positions_cir(i,2)/(7.5+S_positions_cir(i,1)));
-
-    % Compute angle based on cylindrical unwrapping
-    if i == 1
-        angle(i) = 0; % Sensor 1 reference at 0 degrees
-    elseif i == 5
-        angle(i) = 180; % Sensor 5 should be at 180 degrees
-    else
-        angle(i) = atan2d(S_positions_cir(i,2), (7.5 + S_positions_cir(i,1))); 
-        % Convert to positive angles
-        if angle(i) < 0
-            angle(i) = angle(i) + 360;
-        end
-    end
+    angle(i) = atan(S_positions_cir(i,2)/(7.5+S_positions_cir(i,1)))
 end
 
-% Polar plot of velocity vs. angle
+
 figure;
-polarplot(deg2rad(angle), V, 'ko', 'LineWidth', 1.5, 'MarkerFaceColor', 'w'); % Experiment (circle markers)
-hold on 
-polarplot(2*pi-deg2rad(angle(3)), V(3), 'ko', 'LineWidth', 1.5, 'MarkerFaceColor', 'w'); % Experiment (circle markers)
-polarplot(2*pi-deg2rad(angle(7)), V(7), 'ko', 'LineWidth', 1.5, 'MarkerFaceColor', 'w'); % Experiment (circle markers)
+polarplot(angle, V, 'ko-', 'LineWidth', 1.5, 'MarkerFaceColor', 'w'); % Experiment (circle markers)
 
 
 % Formatting
-legend('Experiment', 'Location', 'best');
-title('Polar Plot of Experimental Data (Cylindrical Correction)');
+legend('Experiment', 'Linear Fit', 'Location', 'best');
+title('Polar Plot of Experimental Data');

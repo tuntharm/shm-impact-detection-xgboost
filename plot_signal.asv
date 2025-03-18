@@ -37,12 +37,11 @@ loc = str2double(loc_match{1}{1}); % Convert to number
 
 
 % Check the number of sensors
-
-
-%% Figure for raw vs. filtered signals
 num_sensors = size(sensor_data, 2);
 num_cols = 3; % Three columns for subplots
 num_rows = ceil((num_sensors+1) / num_cols); % Calculate required rows
+
+%% Figure for raw vs. filtered signals
 figure;
 tiledlayout(num_rows, num_cols); % Create grid layout
 tic
@@ -67,7 +66,7 @@ hold on
 plot(time, force_filter, 'b', 'LineWidth', 1, 'DisplayName', 'Filtered Signal');
 xlabel('Time (s)');
 ylabel('Voltage (V)');
-title(['Loc ' num2str(loc) ' - Force']);
+title(num2str(loc) 'Force');
 legend;
 grid on;
 hold off
@@ -85,7 +84,7 @@ toc
 %     filtered_signal = lowpass_filter(raw_signal, time);
 %     hold on
 %     plot_fft(filtered_signal, time, i,'r');  % Re-check the FFT after filterinng
-%     %title(['Loc ' num2str(loc)  'FFT - Sensor ' num2str(i)]);
+%     %title(['FFT - Sensor ' num2str(i)]);
 %     legend('Raw Signal', 'Filtered Signal', 'Location', 'best');
 %     hold off
 % 
@@ -109,7 +108,7 @@ for i = 1:num_sensors
     plot(time, envelope, 'r', 'LineWidth', 1.5); % Overlay the envelope
     hold off;
     legend('Raw Signal', 'Hilbert Envelope');
-    title(['Loc ' num2str(loc) 'Hilbert Transform - Sensor ' num2str(i)]);
+    title(['Hilbert Transform - Sensor ' num2str(sensor_id)]);
 end
 grid on 
 xlabel('Time (s)');
@@ -139,6 +138,6 @@ end
 %     % Plot scalogram
 %     figure;
 %     cwt(raw_signal, 'amor', fs);
-%     title(['Loc ' num2str(loc) 'Scalogram - Sensor ' num2str(i)]);
+%     title(['Scalogram - Sensor ' num2str(i)]);
 % 
 % end

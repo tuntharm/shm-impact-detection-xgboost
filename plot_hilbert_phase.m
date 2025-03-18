@@ -1,4 +1,4 @@
-function plot_hilbert(signal, time, sensor_id)
+function plot_hilbert_phase(signal, time, sensor_id)
 
 analytic_signal = hilbert(signal);
 envelope = abs(analytic_signal);
@@ -18,5 +18,6 @@ plot(time(1:end-1), instantaneous_frequency);
 xlabel('Time (s)');
 ylabel('Instantaneous Frequency (Hz)');
 title(['Hilbert Transform - Sensor ' num2str(sensor_id)]);
+grid on
 
 end
