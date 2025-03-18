@@ -19,7 +19,7 @@ import glob
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/plate"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
@@ -52,20 +52,20 @@ feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
 X = df[feature_columns]
 
 # Selecting target variables (impact location coordinates)
-y = df[["Loc_X", "Loc_Y"]]  # Multi-output regression targets
+y = df[["theta", "z"]]  # Multi-output regression targets
 
 # Split data: 80% train, 10% validation, 10% test
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.05, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 # Define the parameter grid for tuning
 param_grid = {
-    'n_estimators': [450, 500, 550],  # Number of trees
-    'learning_rate': [0.01, 0.02, 0.05, 0.1],  # Lower learning rates for stability
-    'max_depth': [7, 8, 9],  # Control tree depth
-    'subsample': [0.6, 0.7, 0.8],  # Control row sampling
+    'n_estimators': [400, 500, 600],  # Number of trees
+    'learning_rate': [0.015, 0.02, 0.025, 0.03],  # Lower learning rates for stability
+    'max_depth': [ 6,8,10],  # Contro/l tree depth
+    'subsample': [0.4,0.6, 0.8],  # Control row sampling
     'colsample_bytree': [0.6, 0.7, 0.8],  # Feature sampling
-    'reg_alpha': [0.3, 0.5, 0.7],  # L1 Regularization (Feature Selection)
-    'reg_lambda': [2.0,2.5,3]  # L2 Regularization (Prevent Overfitting)
+    'reg_alpha': [0.6, 0.7,0.8],  # L1 Regularization (Feature Selection)
+    'reg_lambda': [2.5,3.0,3.5]  # L2 Regularization (Prevent Overfitting)
 }
 
 # Initialize XGBoost model
@@ -84,7 +84,7 @@ random_search = RandomizedSearchCV(
 )
 
 # Fit RandomizedSearchCV (for Loc_X first)
-random_search.fit(X_train, y_train["Loc_X"]) # Fit for Loc_X
+random_search.fit(X_train, y_train["z"]) # Fit for Loc_X
 
 # Get best parameters
 best_params = random_search.best_params_

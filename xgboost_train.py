@@ -110,6 +110,7 @@ print("Training complete.")
 rmse_xgb = np.array([rmse_x_xgb, rmse_y_xgb, rmse_total_xgb])
 print(f"RMSE for Loc_theta: {rmse_x_xgb:.4f}")
 print(f"RMSE for Loc_Z: {rmse_y_xgb:.4f}")
+print(f"RMSE : {rmse_total_xgb:.4f}")
 
 #plt.figure(figsize=(10, 6))
 xgb.plot_importance(xgb_model_x, importance_type="weight", max_num_features=10)
