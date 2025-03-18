@@ -11,14 +11,14 @@ function distance_features = extract_distance_features(filename)
 
     % Determine if the file is for a tank or plate
     if contains(filename, 'tank')
-        [x, y] = map_location_to_xyz_tank(loc);
+        [theta, z] = map_location_to_thetaz_tank(loc);
     elseif contains(filename, 'flat')
         [x, y] = map_location_to_xy(loc);
         z = 0; % Plate cases have z = 0
     end
 
     % Combine results into distance features
-    distance_features = [loc, x, y];
+    distance_features = [loc, theta, z];
 end
 
 

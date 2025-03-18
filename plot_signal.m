@@ -15,9 +15,9 @@ clear, clc, close all;
 %filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
 %PC -------
 %Flat
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\plate\silham_p1_flat\silham_l1_p1_flat_1.txt";
+%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\plate\silham_p1_flat\silham_l1_p1_flat_1.txt";
 %Tank
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\stlham_p1_tank_new\stlham_l2_p1_tank_2.txt";
+filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\stlham_p1_tank_new\stlham_l3_p1_tank_1.txt";
 %filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\silham_p1_tank_new\silham_l1_p1_tank_1.txt"
 %filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\srubham_p10_tank\srubham_l1_p10_tank_1.txt"
 %filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\rubham_p10_tank_new\rubham_l16_p10_tank_1.txt"
