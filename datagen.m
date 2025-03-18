@@ -5,13 +5,13 @@ tic
 %%% ==========================
 
 feature_types = {'ToA', 'Amplitude', 'SignalEnergy'};
-variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
+variable_names = {'Loc', 'theta', 'z'};
 
 %%% ==========================
 
 %----WINDOW----
-main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\plate";
-output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data\plate";
+main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank";
+output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data\tank";
 
 if ~exist(output_folder, 'dir')
     mkdir(output_folder);
@@ -118,7 +118,7 @@ for c = 1:length(case_folders)
         end
     end
 
-    variable_names = [{'Loc', 'Loc_X', 'Loc_Y'}, feature_column_names, {'Force_N'}];
+    variable_names = [{'Loc', 'theta', 'z'}, feature_column_names, {'Force_N'}];
 
     % Save to CSV
     output_file = fullfile(output_folder, ['Features_' case_name '.csv']);
@@ -132,6 +132,6 @@ for c = 1:length(case_folders)
         break;
     end
     % Default Column
-    variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
+    variable_names = {'Loc', 'theta', 'z'};
 end
 toc
