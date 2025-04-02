@@ -126,85 +126,93 @@ def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45)
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, r=11.55, z_max=45):
+def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rmse_x=None, rmse_y=None, r=11.55, z_max=45):
     """
-    Plots a flattened cylindrical representation (2D) with a structured grid and visualizes true vs predicted positions.
+    Plot true vs predicted impact positions on a flattened cylindrical tank.
 
     Parameters:
-        y_test (DataFrame): True impact locations with columns ["Loc_X", "Loc_Y"].
-        y_pred_x (array): Predicted X coordinates (axial).
-        y_pred_y (array): Predicted Y coordinates (circumferential, unrolled).
-        r (float): Radius of the cylinder.
-        z_max (float): Maximum width of the flattened cylinder.
+        y_test (ndarray): Ground truth values, shape (N, 2) where [:,0]=theta (rad), [:,1]=z
+        y_pred_x (ndarray): Predicted theta (rad), shape (N,)
+        y_pred_y (ndarray): Predicted z, shape (N,)
+        rmse_total (float): Optional total RMSE value
+        rmse_x (float): Optional RMSE in X (theta)
+        rmse_y (float): Optional RMSE in Y (z)
+        r (float): Radius of cylinder in mm
+        z_max (float): Height of cylinder in mm
     """
-    # Define unwrapped height
-    height = 2 * np.pi * r  # Total height of the unwrapped cylinder
 
-    # Extract true values
-    x_true = y_test["Loc_X"].to_numpy()  # Axial positions
-    y_true = y_test["Loc_Y"].to_numpy()  # Circumferential positions (already unrolled)
+    circumference = 2 * np.pi * r
 
-    # Define grid spacing
-    num_h_lines = 7  # Horizontal grid divisions (exclude top & bottom)
-    num_v_lines = 5  # Vertical grid divisions (exclude edges)
+    # Flattened coordinates
+    true_x_flat = y_test.iloc[:, 1]         # Z-axis
+    true_y_flat = r * y_test.iloc[:, 0]     # Unwrapped theta
+    true_x_flat = true_x_flat.to_numpy()
+    true_y_flat = true_y_flat.to_numpy()
 
-    # Manually defining grid positions
-    y_grid_positions = np.linspace(-height, 0, num_h_lines + 2)[1:-1]  # Exclude top & bottom
-    x_grid_positions = np.linspace(-z_max, 0, num_v_lines + 2)[1:-1]  # Exclude left & right edges
 
-    # Create 2D plot
+
+    pred_x_flat = y_pred_y             # Predicted Z-axis
+    pred_y_flat = r * y_pred_x         # Predicted unwrapped theta
+
+    # Start plot
     plt.figure(figsize=(10, 6))
 
-    # Plot manually defined horizontal grid lines
-    for y_h in y_grid_positions:
-        plt.plot([-z_max, 0], [y_h, y_h], 'k-', linewidth=0.5, alpha=0.7)  # Black horizontal lines
+    # Plot points
+    plt.scatter(true_x_flat, true_y_flat, s=100, c='blue', marker='+', label='True Position', linewidths=2)
+    plt.scatter(pred_x_flat, pred_y_flat, s=100, c='red', marker='+', label='Predicted Position', linewidths=2)
 
-    # Plot manually defined vertical grid lines
-    for x_v in x_grid_positions:
-        plt.plot([x_v, x_v], [-height, 0], 'k-', linewidth=0.5, alpha=0.7)  # Black vertical lines
+    # Connect true and predicted with dashed lines
+    for i in range(len(y_test)):
+        plt.plot([true_x_flat[i], pred_x_flat[i]], [true_y_flat[i], pred_y_flat[i]], 'k--', linewidth=1.2)
 
-    # Define sensor positions (mapping to 2D)
-    sensor_positions = np.array([
-        [0, 0],                          # S1
-        [0, -2 * (2 * np.pi * r / 8)],   # S2
-        [0, -4 * (2 * np.pi * r / 8)],   # S3
-        [0, -6 * (2 * np.pi * r / 8)],   # S4
-        [0, -8 * (2 * np.pi * r / 8)],   # S1 
-        [-z_max, 0],                     # S5
-        [-z_max, -2 * (2 * np.pi * r / 8)],  # S6
-        [-z_max, -4 * (2 * np.pi * r / 8)],  # S7
-        [-z_max, -6 * (2 * np.pi * r / 8)],   # S8
-        [-z_max, -8 * (2 * np.pi * r / 8)]   # S6
+    # Plot unwrapped cylinder rectangle
+    x_rect = [0, z_max, z_max, 0, 0]
+    y_rect = [circumference/2, circumference/2, -circumference/2, -circumference/2, circumference/2]
+    plt.plot(x_rect, y_rect, 'k-', linewidth=2)
 
+    # Grid lines
+    num_h_lines = 7
+    num_v_lines = 5
+
+    for i in range(1, num_h_lines + 1):
+        y_h = circumference/2 - i * (circumference / (num_h_lines + 1))
+        plt.plot([0, z_max], [y_h, y_h], 'k-', linewidth=0.5)
+
+    for j in range(1, num_v_lines + 1):
+        x_v = j * (z_max / (num_v_lines + 1))
+        plt.plot([x_v, x_v], [-circumference/2, circumference/2], 'k-', linewidth=0.5)
+
+    # Sensor positions and labels
+    sensor_theta = np.linspace(-np.pi, np.pi, 5)
+    sensor_positions = np.vstack([
+        np.column_stack([np.zeros(5), -r * sensor_theta]),
+        np.column_stack([np.ones(5) * z_max, -r * sensor_theta])
     ])
 
-    # Plot black squares at sensor positions
-    for x_s, y_s in sensor_positions:
-        plt.scatter(x_s, y_s, color="black", s=100, marker="s")
+    S_labels = ['S1', 'S2', 'S3', 'S4', 'S1', 'S5', 'S6', 'S7', 'S8', 'S5']
+    for i, label in enumerate(S_labels):
+        plt.text(sensor_positions[i, 0], sensor_positions[i, 1], label,
+                 color='blue', fontsize=12, fontweight='bold', ha='center')
 
-    # Plot true positions (blue dots)
-    plt.scatter(x_true, y_true, color="blue", label="True Position", s=40)
+    # Title
+    title_text = r'$\bf{Flattened\ Cylinder:\ True\ vs\ Predicted\ Positions}$'
+    if rmse_total is not None:
+        rmse_str = f'RMSE: {rmse_total:.3f} mm'
+        if rmse_x is not None and rmse_y is not None:
+            rmse_str += f' (X: {rmse_x:.3f}, Y: {rmse_y:.3f})'
+        plt.title(f"{title_text}\n{rmse_str}", fontsize=14)
+    else:
+        plt.title(title_text, fontsize=14)
 
-    # Plot predicted positions (red crosses)
-    plt.scatter(y_pred_x, y_pred_y, color="red", marker='x', label="Predicted Position", s=40)
-
-    # Draw grey dashed lines connecting true and predicted positions
-    for tx, ty, px, py in zip(x_true, y_true, y_pred_x, y_pred_y):
-        plt.plot([tx, px], [ty, py], linestyle="dashed", color="grey", alpha=0.6)
-
-    # Formatting
-    plt.xlabel("Axial Position (X)")
-    plt.ylabel("Circumferential Position (Unwrapped Y)")
-    plt.title("True vs Predicted Positions (Flattened Cylinder)")
-    plt.xlim(-z_max, 0)
-    plt.ylim(-height, 0)
-    plt.legend()
-    
-    # **Disable automatic grid to remove grey lines**
-    plt.grid(False) 
-    
+    # Labels and layout
+    plt.xlabel('Z-axis (Height) (mm)')
+    plt.ylabel('Unwrapped Circumference Position (mm)')
+    plt.xlim([-10, z_max + 10])
+    plt.ylim([-circumference/2 - 10, circumference/2 + 10])
+    plt.legend(loc='upper right')
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
-
 
 import numpy as np
 import matplotlib.pyplot as plt

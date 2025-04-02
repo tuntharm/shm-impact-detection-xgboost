@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 import matplotlib.pyplot as plt
 from plot_utils import plot_cylinder_predictions
-from plot_utils import plot_plate_predictions
+from plot_utils import plot_tankflatten_predictions
 from savefile import save_predictions
 import os
 import glob
@@ -18,7 +18,7 @@ import glob
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
@@ -57,7 +57,7 @@ X = df[feature_columns]
 y = df[["theta", "z"]]  # Multi-output regression targets
 
 # Split data: 80% train, 10% validation, 10% test
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.05, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.1, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
 # -------------- XGBoost PARAMETERS --------------------------
@@ -127,7 +127,7 @@ plt.title("Top 10 Feature Importances for Loc_Z")
 
 ## VISUALISATION
 plot_cylinder_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
-#plot_tankflatten_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb)
+plot_tankflatten_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, rmse_total=rmse_total_xgb, rmse_x=rmse_x_xgb, rmse_y=rmse_y_xgb, r=11.55, z_max=45)
 #plot_plate_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb) #For plate
 filename = 'predictions_XGB.mat'
 save_predictions(y_test, y_pred_x_xgb, y_pred_y_xgb, filename, rmse_xgb)
