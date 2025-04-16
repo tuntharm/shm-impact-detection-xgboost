@@ -44,7 +44,11 @@ num_rows, num_columns = df.shape
 
 print(f"Rows: {num_rows}, Columns: {num_columns}")
 
-
+# ---------------- FILTER OUT AMBIGUOUS LOCATIONS ----------------
+ambiguous_locs = [8, 18, 28, 38]  # Loc column indicating ambiguous hits
+if "Loc" in df.columns:
+    df = df[~df["Loc"].isin(ambiguous_locs)].reset_index(drop=True)
+    print(f"Data filtered. Remaining rows: {len(df)}")
 
 
 #--------------TRAINING--------------------------
@@ -54,18 +58,20 @@ feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
 X = df[feature_columns]
 
 # Selecting target variables (impact location coordinates)
-y = df[["theta", "z"]]  # Multi-output regression targets
+y = df[["theta", "z"]]  
+
+
 
 # Split data: 80% train, 10% validation, 10% test
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.1, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.05, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
 # -------------- XGBoost PARAMETERS --------------------------
 xgb_params = {
     'objective': "reg:squarederror",
-    'n_estimators': 500,  # Increase trees for better learning
+    'n_estimators': 600,  # Increase trees for better learning
     'learning_rate': 0.02,  # Lower learning rate for stability
-    'max_depth': 9,  # Deeper trees for better feature learning
+    'max_depth': 10,  # Deeper trees for better feature learning
     'subsample': 0.6,
     'colsample_bytree': 0.8,
     'reg_lambda': 3,  # Regularization to prevent overfitting
@@ -121,6 +127,7 @@ plt.title("Top 10 Feature Importances for Loc_theta")
 xgb.plot_importance(xgb_model_y, importance_type="weight", max_num_features=10)
 plt.title("Top 10 Feature Importances for Loc_Z")
 #plt.show()
+
 
 
 #------------------------------------------------

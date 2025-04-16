@@ -116,7 +116,7 @@ def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45)
     ax.legend()
 
     # Show plot
-    plt.show()
+    plt.show(block=False)
 
 
 
@@ -189,7 +189,7 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
         np.column_stack([np.ones(5) * z_max, -r * sensor_theta])
     ])
 
-    S_labels = ['S1', 'S2', 'S3', 'S4', 'S1', 'S5', 'S6', 'S7', 'S8', 'S5']
+    S_labels = ['S3', 'S4', 'S1', 'S2','S3', 'S7', 'S8', 'S5', 'S6', 'S7']
     for i, label in enumerate(S_labels):
         plt.text(sensor_positions[i, 0], sensor_positions[i, 1], label,
                  color='blue', fontsize=12, fontweight='bold', ha='center')
@@ -210,7 +210,7 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
     plt.xlim([-10, z_max + 10])
     plt.ylim([-circumference/2 - 10, circumference/2 + 10])
     plt.legend(loc='upper right')
-    plt.grid(True)
+    plt.grid(False)
     plt.tight_layout()
     plt.show()
 
@@ -233,6 +233,5 @@ def plot_plate_predictions(y_test, y_pred_x, y_pred_y):
     plt.ylim((-60,60))
     plt.legend()
     plt.grid()
-    plt.show()
-
+    plt.show(block=False)
     
