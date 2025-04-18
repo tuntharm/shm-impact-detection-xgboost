@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import Circle
 
 
 def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45):
@@ -126,7 +127,7 @@ def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45)
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rmse_x=None, rmse_y=None, r=11.55, z_max=45):
+def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rmse_x=None, rmse_y=None, r=11.55, z_max=45, FP_mask=None):
     """
     Plot true vs predicted impact positions on a flattened cylindrical tank.
 
@@ -194,6 +195,18 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
         plt.text(sensor_positions[i, 0], sensor_positions[i, 1], label,
                  color='blue', fontsize=12, fontweight='bold', ha='center')
 
+
+
+    for i in np.where(FP_mask)[0]:
+        cx = true_x_flat[i]  # Z-axis (horizontal)
+        cy = true_y_flat[i]  # Unwrapped theta (vertical)
+        dx = cx - pred_x_flat[i]
+        dy = cy - pred_y_flat[i]
+        error_radius = np.sqrt(dx**2 + dy**2)
+
+        circle = Circle((cx, cy), error_radius, color='red', fill=False, linestyle='--', linewidth=1.2, alpha=0.5)
+        plt.gca().add_patch(circle)
+
     # Title
     title_text = r'$\bf{Flattened\ Cylinder:\ True\ vs\ Predicted\ Positions}$'
     if rmse_total is not None:
@@ -211,6 +224,7 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
     plt.ylim([-circumference/2 - 10, circumference/2 + 10])
     plt.legend(loc='upper right')
     plt.grid(False)
+    plt.gca().set_aspect('equal', adjustable='box')
     plt.tight_layout()
     plt.show()
 
