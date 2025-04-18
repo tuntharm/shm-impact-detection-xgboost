@@ -210,10 +210,12 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
     # Title
     title_text = r'$\bf{Flattened\ Cylinder:\ True\ vs\ Predicted\ Positions}$'
     if rmse_total is not None:
-        rmse_str = f'RMSE: {rmse_total:.3f} mm'
+        rmse_str = f'RMSE: {rmse_total:.3f} cm'
         if rmse_x is not None and rmse_y is not None:
             rmse_str += f' (X: {rmse_x:.3f}, Y: {rmse_y:.3f})'
-        plt.title(f"{title_text}\n{rmse_str}", fontsize=14)
+        false_positives = FP_mask.sum() if FP_mask is not None else "N/A"
+        accuracy = (len(y_test) - false_positives) / len(y_test)
+        plt.title(f"{title_text}\n{rmse_str} - Accuracy: {accuracy:.3f}", fontsize=14)
     else:
         plt.title(title_text, fontsize=14)
 

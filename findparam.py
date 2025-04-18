@@ -1,27 +1,19 @@
 import xgboost as xgb
-from sklearn.model_selection import RandomizedSearchCV
-import xgboost as xgb
-from sklearn.metrics import mean_squared_error
 import numpy as np
 import pandas as pd
+import os, glob, time
+from itertools import product
 from sklearn.model_selection import train_test_split
-from xgboost import XGBRegressor
-import matplotlib.pyplot as plt
-from plot_utils import plot_plate_predictions
-from savefile import save_predictions
-import os
-import glob
-from sklearn.model_selection import RandomizedSearchCV, train_test_split
-import time
+from sklearn.metrics import mean_squared_error
+import random
 
+# --------------------------------------
+# CONFIG
+# --------------------------------------
+r = 11.55  # radius of cylinder
+NUM_RANDOM_SAMPLES = 50  # You can increase this
 
-
-
-
-# data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
-# df = pd.read_csv(data)
-
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/top"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
@@ -40,86 +32,99 @@ for file in csv_files:
 
 # Concatenate all dataframes
 df = pd.concat(dfs, ignore_index=True)
-
-# Display the first few rows of the combined DataFrame
-#print(df.head())
 num_rows, num_columns = df.shape
 
 print(f"Rows: {num_rows}, Columns: {num_columns}")
+
+# ---------------- FILTER OUT AMBIGUOUS LOCATIONS ----------------
 ambiguous_locs = [8, 18, 28, 38]  # Loc column indicating ambiguous hits
 if "Loc" in df.columns:
     df = df[~df["Loc"].isin(ambiguous_locs)].reset_index(drop=True)
     print(f"Data filtered. Remaining rows: {len(df)}")
+
+#df["is_ambiguous"] = df["Loc"].isin([8, 18, 28, 38]).astype(int)
+
+
 #--------------TRAINING--------------------------
 #------------------------------------------------
-
-# ------------------ FEATURE & TARGET SETUP ------------------
+# Selecting features (all columns from "Distance_S1" to "Force_N")
 feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
 X = df[feature_columns]
-y = df[["theta", "z"]]
 
-# ------------------ SPLIT DATA ------------------
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.05, random_state=42)
+# Selecting target variables (impact location coordinates)
+y = df[["theta", "z"]]  
+
+
+
+# Split data:
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.03, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
-
-# ------------------ PARAMETER GRID ------------------
+# --------------------------------------
+# PARAMETER GRID
+# --------------------------------------
 param_grid = {
-    'n_estimators': [400, 500, 600],
+    'n_estimators': [ 500, 600,700],
     'learning_rate': [0.015, 0.02, 0.025, 0.03],
     'max_depth': [6, 8, 10],
     'subsample': [0.4, 0.6, 0.8],
     'colsample_bytree': [0.6, 0.7, 0.8],
     'reg_alpha': [0.6, 0.7, 0.8],
-    'reg_lambda': [2.5, 3.0, 3.5]
+    'reg_lambda': [3.0, 3.5,4.0]
 }
 
-# ------------------ FUNCTION TO TUNE A TARGET ------------------
-def tune_xgboost(target_label):
-    print(f"\n--- Tuning for: {target_label} ---")
-    xgb_model = xgb.XGBRegressor(objective="reg:squarederror", random_state=42)
+# Generate all param combinations and randomly sample
+keys, values = zip(*param_grid.items())
+all_combinations = [dict(zip(keys, v)) for v in product(*values)]
+sampled_params = random.sample(all_combinations, min(NUM_RANDOM_SAMPLES, len(all_combinations)))
 
-    search = RandomizedSearchCV(
-        estimator=xgb_model,
-        param_distributions=param_grid,
-        scoring='neg_root_mean_squared_error',
-        n_iter=20,
-        cv=5,
-        verbose=1,
-        n_jobs=-1,
-        random_state=42
-    )
+# --------------------------------------
+# JOINT TUNING FUNCTION
+# --------------------------------------
+best_rmse = float("inf")
+best_params = None
+best_models = (None, None)
 
-    start = time.time()
-    search.fit(X_train, y_train[target_label])
-    end = time.time()
+print(f"Testing {len(sampled_params)} random hyperparameter combinations...")
 
-    best_params = search.best_params_
-    best_rmse = -search.best_score_
+for i, params in enumerate(sampled_params):
+    print(f"\n[{i+1}/{len(sampled_params)}] Testing: {params}")
 
-    print(f"Best Parameters for {target_label}: {best_params}")
-    print(f"Best RMSE for {target_label}: {best_rmse:.4f}")
-    print(f"Tuning Time: {end - start:.2f} seconds")
+    model_theta = xgb.XGBRegressor(objective="reg:squarederror", tree_method="hist", device="cuda", **params)
+    model_z = xgb.XGBRegressor(objective="reg:squarederror", tree_method="hist", device="cuda", **params)
 
-    return search.best_estimator_, best_rmse, best_params
 
-# ------------------ RUN TUNING FOR Z & THETA ------------------
-best_model_z, best_rmse_z, best_params_z = tune_xgboost("z")
-best_model_theta, best_rmse_theta, best_params_theta = tune_xgboost("theta")
+    model_theta.fit(X_train, y_train["theta"])
+    model_z.fit(X_train, y_train["z"])
 
-# ------------------ FINAL EVALUATION ------------------
-y_pred_theta = best_model_theta.predict(X_test)
-y_pred_z = best_model_z.predict(X_test)
+    pred_theta = model_theta.predict(X_val)
+    pred_z = model_z.predict(X_val)
 
-rmse_theta_final = np.sqrt(mean_squared_error(y_test["theta"], y_pred_theta))
-rmse_z_final = np.sqrt(mean_squared_error(y_test["z"], y_pred_z))
-rmse_total_final = np.sqrt(
-    np.mean(
-        (y_test["theta"] - y_pred_theta) ** 2 +
-        (y_test["z"] - y_pred_z) ** 2
-    )
-)
+    spatial_error = np.sqrt(((y_val["theta"] - pred_theta) * r) ** 2 + (y_val["z"] - pred_z) ** 2)
+    combined_rmse = np.mean(spatial_error)
 
-print("\n====== FINAL TEST RMSE ======")
-print(f"Test RMSE (theta): {rmse_theta_final:.4f}")
-print(f"Test RMSE (z): {rmse_z_final:.4f}")
-print(f"Test RMSE (total): {rmse_total_final:.4f}")
+    print(f"→ Spatial RMSE: {combined_rmse:.4f} cm")
+
+    if combined_rmse < best_rmse:
+        best_rmse = combined_rmse
+        best_params = params
+        best_models = (model_theta, model_z)
+
+# --------------------------------------
+# FINAL EVALUATION
+# --------------------------------------
+print("\n Best Params:")
+print(best_params)
+print(f"Best Spatial RMSE on val set: {best_rmse:.4f} cm")
+
+model_theta, model_z = best_models
+y_pred_theta = model_theta.predict(X_test)
+y_pred_z = model_z.predict(X_test)
+
+rmse_theta = np.sqrt(mean_squared_error(y_test["theta"], y_pred_theta)) * r
+rmse_z = np.sqrt(mean_squared_error(y_test["z"], y_pred_z))
+rmse_total = np.sqrt(np.mean(((y_test["theta"] - y_pred_theta)*r)**2 + (y_test["z"] - y_pred_z)**2))
+
+print("\n====== FINAL TEST RESULTS ======")
+print(f"RMSE (theta, cm): {rmse_theta:.4f}")
+print(f"RMSE (z, cm): {rmse_z:.4f}")
+print(f"Combined Spatial RMSE (cm): {rmse_total:.4f}")
