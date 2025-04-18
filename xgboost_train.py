@@ -48,6 +48,7 @@ print(f"Rows: {num_rows}, Columns: {num_columns}")
 
 df["is_ambiguous"] = df["Loc"].isin([8, 18, 28, 38]).astype(int)
 
+
 #--------------TRAINING--------------------------
 #------------------------------------------------
 # Selecting features (all columns from "Distance_S1" to "Force_N")
