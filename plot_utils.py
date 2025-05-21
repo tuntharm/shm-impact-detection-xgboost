@@ -126,100 +126,94 @@ def plot_cylinder_predictions(y_test, y_pred_theta, y_pred_z, r=11.55, z_max=45)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
 
-def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rmse_x=None, rmse_y=None, r=11.55, z_max=45, FP_mask=None):
+def plot_tankflatten_predictions(
+    y_test, pred_theta, y_pred_z, test_loc,
+    rmse_total=None, rmse_z=None, rmse_theta=None, accuracy=None,
+    r=11.55, z_max=45, FP_mask=None):
     """
     Plot true vs predicted impact positions on a flattened cylindrical tank.
 
     Parameters:
-        y_test (ndarray): Ground truth values, shape (N, 2) where [:,0]=theta (rad), [:,1]=z
-        y_pred_x (ndarray): Predicted theta (rad), shape (N,)
-        y_pred_y (ndarray): Predicted z, shape (N,)
-        rmse_total (float): Optional total RMSE value
-        rmse_x (float): Optional RMSE in X (theta)
-        rmse_y (float): Optional RMSE in Y (z)
-        r (float): Radius of cylinder in mm
-        z_max (float): Height of cylinder in mm
+        y_test (DataFrame): Ground truth with columns "sin_theta", "cos_theta", "z"
+        pred_theta (ndarray): Predicted theta values (radians)
+        y_pred_z (ndarray): Predicted Z values (mm)
+        test_loc (str): "top" or "full" — affects theta wrapping logic
+        rmse_total (float): Total RMSE in cm
+        rmse_z (float): Z RMSE in cm
+        rmse_theta (float): Theta RMSE in cm
+        accuracy (float): Accuracy score
+        r (float): Radius of cylinder (mm)
+        z_max (float): Max Z height (mm)
+        FP_mask (array-like): Boolean mask for false positives
     """
-
     circumference = 2 * np.pi * r
 
+    true_theta = np.arctan2(y_test["sin_theta"], y_test["cos_theta"])
+
+    if test_loc == "full":
+        pred_theta[np.isclose(true_theta, np.pi)] = -pred_theta[np.isclose(true_theta, np.pi)]
+
     # Flattened coordinates
-    true_x_flat = y_test.iloc[:, 1]         # Z-axis
-    true_y_flat = r * y_test.iloc[:, 0]     # Unwrapped theta
-    true_x_flat = true_x_flat.to_numpy()
-    true_y_flat = true_y_flat.to_numpy()
+    true_x_flat = y_test["z"].to_numpy()
+    true_y_flat = (r * true_theta).to_numpy()
+    pred_x_flat = y_pred_z
+    pred_y_flat = r * pred_theta
 
-
-
-    pred_x_flat = y_pred_y             # Predicted Z-axis
-    pred_y_flat = r * y_pred_x         # Predicted unwrapped theta
-
-    # Start plot
+    # --- Plotting ---
     plt.figure(figsize=(10, 6))
-
-    # Plot points
     plt.scatter(true_x_flat, true_y_flat, s=100, c='blue', marker='+', label='True Position', linewidths=2)
     plt.scatter(pred_x_flat, pred_y_flat, s=100, c='red', marker='+', label='Predicted Position', linewidths=2)
 
-    # Connect true and predicted with dashed lines
     for i in range(len(y_test)):
         plt.plot([true_x_flat[i], pred_x_flat[i]], [true_y_flat[i], pred_y_flat[i]], 'k--', linewidth=1.2)
 
-    # Plot unwrapped cylinder rectangle
+    # Unwrapped cylinder rectangle
     x_rect = [0, z_max, z_max, 0, 0]
     y_rect = [circumference/2, circumference/2, -circumference/2, -circumference/2, circumference/2]
     plt.plot(x_rect, y_rect, 'k-', linewidth=2)
 
     # Grid lines
-    num_h_lines = 7
-    num_v_lines = 5
-
-    for i in range(1, num_h_lines + 1):
-        y_h = circumference/2 - i * (circumference / (num_h_lines + 1))
+    for i in range(1, 8):
+        y_h = circumference/2 - i * (circumference / 8)
         plt.plot([0, z_max], [y_h, y_h], 'k-', linewidth=0.5)
 
-    for j in range(1, num_v_lines + 1):
-        x_v = j * (z_max / (num_v_lines + 1))
+    for j in range(1, 6):
+        x_v = j * (z_max / 6)
         plt.plot([x_v, x_v], [-circumference/2, circumference/2], 'k-', linewidth=0.5)
 
-    # Sensor positions and labels
+    # Sensor locations
     sensor_theta = np.linspace(-np.pi, np.pi, 5)
     sensor_positions = np.vstack([
         np.column_stack([np.zeros(5), -r * sensor_theta]),
         np.column_stack([np.ones(5) * z_max, -r * sensor_theta])
     ])
-
-    S_labels = ['S3', 'S4', 'S1', 'S2','S3', 'S7', 'S8', 'S5', 'S6', 'S7']
+    S_labels = ['S3', 'S4', 'S1', 'S2', 'S3', 'S7', 'S8', 'S5', 'S6', 'S7']
     for i, label in enumerate(S_labels):
         plt.text(sensor_positions[i, 0], sensor_positions[i, 1], label,
                  color='blue', fontsize=12, fontweight='bold', ha='center')
 
+    # False positive error circles
+    if FP_mask is not None:
+        for i in np.where(FP_mask)[0]:
+            cx = true_x_flat[i]
+            cy = true_y_flat[i]
+            dx = cx - pred_x_flat[i]
+            dy = cy - pred_y_flat[i]
+            err_r = np.sqrt(dx**2 + dy**2)
+            circle = Circle((cx, cy), err_r, color='red', fill=False, linestyle='--', linewidth=1.2, alpha=0.5)
+            plt.gca().add_patch(circle)
 
-
-    for i in np.where(FP_mask)[0]:
-        cx = true_x_flat[i]  # Z-axis (horizontal)
-        cy = true_y_flat[i]  # Unwrapped theta (vertical)
-        dx = cx - pred_x_flat[i]
-        dy = cy - pred_y_flat[i]
-        error_radius = np.sqrt(dx**2 + dy**2)
-
-        circle = Circle((cx, cy), error_radius, color='red', fill=False, linestyle='--', linewidth=1.2, alpha=0.5)
-        plt.gca().add_patch(circle)
-
-    # Title
+    # Title and layout
     title_text = r'$\bf{Flattened\ Cylinder:\ True\ vs\ Predicted\ Positions}$'
     if rmse_total is not None:
         rmse_str = f'RMSE: {rmse_total:.3f} cm'
-        if rmse_x is not None and rmse_y is not None:
-            rmse_str += f' (X: {rmse_x:.3f}, Y: {rmse_y:.3f})'
-        false_positives = FP_mask.sum() if FP_mask is not None else "N/A"
-        accuracy = (len(y_test) - false_positives) / len(y_test)
-        plt.title(f"{title_text}\n{rmse_str} - Accuracy: {accuracy:.3f}", fontsize=14)
-    else:
-        plt.title(title_text, fontsize=14)
+        if rmse_theta is not None and rmse_z is not None:
+            rmse_str += f' (Theta: {rmse_theta:.3f}, Z: {rmse_z:.3f})'
+        title_text += f"\n{rmse_str} - Accuracy: {accuracy:.3f}"
 
-    # Labels and layout
+    plt.title(title_text, fontsize=14)
     plt.xlabel('Z-axis (Height) (mm)')
     plt.ylabel('Unwrapped Circumference Position (mm)')
     plt.xlim([-10, z_max + 10])
@@ -229,6 +223,7 @@ def plot_tankflatten_predictions(y_test, y_pred_x, y_pred_y, rmse_total=None, rm
     plt.gca().set_aspect('equal', adjustable='box')
     plt.tight_layout()
     plt.show()
+
 
 import numpy as np
 import matplotlib.pyplot as plt
