@@ -22,13 +22,13 @@ r = 11.55
 z_max = 45
 #---------------------------------------
 error_distance = 3.5 # threshold
-test_loc = "full"  # or "full"
+test_loc = "top"  # or "full"
 #---------------------------------------
 
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/21May"
+folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/16april"
 
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
@@ -132,6 +132,7 @@ if test_loc == "full":
 rmse_theta = np.sqrt(mean_squared_error(true_theta, pred_theta)) * r
 rmse_z = np.sqrt(mean_squared_error(y_test["z"], y_pred_z))
 rmse_total = np.sqrt(np.mean(((true_theta - pred_theta) * r) ** 2 + (y_test["z"] - y_pred_z) ** 2))
+rmse = np.array([rmse_theta, rmse_z, rmse_total])
 
 # Compute spatial error (Euclidean distance in cm)
 spatial_error = np.sqrt(((true_theta - pred_theta) * r) ** 2 + (y_test["z"] - y_pred_z) ** 2)
@@ -175,10 +176,6 @@ for i, (t, p, z_val, z_pred, err_cm) in enumerate(zip(true_theta, pred_theta, y_
     if err_cm > error_distance:
         print(f"{i:<6} {t:+.4f}         {p:+.4f}         {z_val:<12.1f} {z_pred:<12.1f} {err_cm:.2f}")
 
-
-
-
-
 #------------------------------------------------
 
 ## VISUALISATION
@@ -196,6 +193,72 @@ plot_tankflatten_predictions(
     z_max=45,
     FP_mask=FP_mask
 )
+
+#plt.figure(figsize=(10, 6))
+xgb.plot_importance(xgb_model_sin, importance_type="weight", max_num_features=10)
+plt.title("Top 10 Feature Importances for Loc_sin")
+#plt.show()
+#plt.figure(figsize=(10, 6))
+xgb.plot_importance(xgb_model_cos, importance_type="weight", max_num_features=10)
+plt.title("Top 10 Feature Importances for Loc_cos")
+#plt.show()
+
+#plt.figure(figsize=(10, 6))
+xgb.plot_importance(xgb_model_z, importance_type="weight", max_num_features=10)
+plt.title("Top 10 Feature Importances for Loc_Z")
+#plt.show()
+
+
+# ------------------ IMPACT CLASSIFICATION ------------------
+# ---------------------------------
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+
+# ----------- Features & Target -----------
+feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
+X_cls = df[feature_columns]
+y_cls = df["Impact_Type"]  # 0: soft, 1: hard
+
+# ----------- Train/Test Split -----------
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_cls, y_cls, test_size=0.2, random_state=42)
+
+# ----------- Train Classifier -----------
+impact_clf = xgb.XGBClassifier(
+    objective='binary:logistic',
+    eval_metric='logloss',
+    learning_rate=0.02,
+    max_depth=10,
+    n_estimators=600,
+    subsample=0.6,
+    colsample_bytree=0.8,
+    reg_lambda=3,
+    reg_alpha=0.5,
+    use_label_encoder=False
+)
+
+impact_clf.fit(X_train_cls, y_train_cls)
+
+# ----------- Evaluate -----------
+y_pred_cls = impact_clf.predict(X_test_cls)
+
+print("Classification Report:")
+print(classification_report(y_test_cls, y_pred_cls, digits=4))
+
+# ----------- Confusion Matrix -----------
+plt.figure(figsize=(6, 4))
+cm = confusion_matrix(y_test_cls, y_pred_cls)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Soft', 'Hard'], yticklabels=['Soft', 'Hard'])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix: Soft vs Hard Impacts")
+plt.tight_layout()
+plt.show()
+
+# ----------- Feature Importance -----------
+xgb.plot_importance(impact_clf, importance_type="weight", max_num_features=10)
+plt.title("Top 10 Feature Importances (Impact Classification)")
+plt.tight_layout()
+plt.show()
 
 #filename = 'predictions_XGB.mat'
 #save_predictions(y_test, y_pred_theta, y_pred_z, filename, rmse)
