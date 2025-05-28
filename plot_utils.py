@@ -152,9 +152,6 @@ def plot_tankflatten_predictions(
 
     true_theta = np.arctan2(y_test["sin_theta"], y_test["cos_theta"])
 
-    if test_loc == "full":
-        pred_theta[np.isclose(true_theta, np.pi)] = -pred_theta[np.isclose(true_theta, np.pi)]
-
     # Flattened coordinates
     true_x_flat = y_test["z"].to_numpy()
     true_y_flat = (r * true_theta).to_numpy()
@@ -214,8 +211,8 @@ def plot_tankflatten_predictions(
         title_text += f"\n{rmse_str} - Accuracy: {accuracy:.3f}"
 
     plt.title(title_text, fontsize=14)
-    plt.xlabel('Z-axis (Height) (mm)')
-    plt.ylabel('Unwrapped Circumference Position (mm)')
+    plt.xlabel('Z-axis (Height) (cm)')
+    plt.ylabel('Unwrapped Circumference Position (cm)')
     plt.xlim([-10, z_max + 10])
     plt.ylim([-circumference/2 - 10, circumference/2 + 10])
     plt.legend(loc='upper right')

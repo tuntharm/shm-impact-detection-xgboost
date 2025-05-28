@@ -22,7 +22,7 @@ r = 11.55
 z_max = 45
 #---------------------------------------
 error_distance = 3.5 # threshold
-test_loc = "top"  # or "full"
+test_loc = "full"  # or "full"
 #---------------------------------------
 
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
@@ -51,31 +51,44 @@ num_rows, num_columns = df.shape
 
 print(f"Rows: {num_rows}, Columns: {num_columns}")
 
-# ---------------- FILTER OUT AMBIGUOUS LOCATIONS ----------------
-ambiguous_locs = [8, 18, 28, 38]  # Loc column indicating ambiguous hits
-if "Loc" in df.columns:
-    df = df[~df["Loc"].isin(ambiguous_locs)].reset_index(drop=True)
-    print(f"Data filtered. Remaining rows: {len(df)}")
+# ---------------------- AMBIGUOUS LOCATIONS ----------------------
+# Define ambiguous locations once
+ambiguous_locs = [8, 18, 28, 38]
 
-# df["is_ambiguous"] = df["Loc"].isin([8, 18, 28, 38]).astype(int)
+# ---------------------- MARK AMBIGUOUS ----------------------
+# Uncomment to mark ambiguous samples
+df["is_ambiguous"] = df["Loc"].isin(ambiguous_locs).astype(int)
 
+# ---------------------- FILTER AMBIGUOUS ROWS ----------------------
+# Uncomment to remove ambiguous samples
+# df = df[df["Loc"].isin(ambiguous_locs) == False].reset_index(drop=True)
+# print(f"Ambiguous rows removed. Remaining rows: {len(df)}")
+
+
+
+# Define correct angular and axial positions
+sensor_theta = [0, np.pi/2, np.pi, 3*np.pi/2] * 2
+sensor_z = [0]*4 + [45]*4
+
+# Add theta and z features for each sensor
+for i in range(8):
+    df[f"S{i+1}_theta"] = sensor_theta[i]
+    df[f"S{i+1}_z"] = sensor_z[i]
 
 #--------------TRAINING--------------------------
 #------------------------------------------------
 
 # -------------------------- TRAINING SETUP --------------------------
-# Selecting features
-feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns.tolist()
-#feature_columns.append("is_ambiguous")
-X = df[feature_columns]
-
+# ---------------------- TARGET FEATURES ---------------------
 df["sin_theta"] = np.sin(df["theta"])
 df["cos_theta"] = np.cos(df["theta"])
-
-feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
-X = df[feature_columns]
 y = df[["sin_theta", "cos_theta", "z"]]
 
+# ---------------------- INPUT FEATURES ----------------------
+# Always start with base features from ToA_S1 to S8_z
+feature_columns = df.loc[:, "ToA_S1":"S8_z"].columns.tolist()
+
+X = df[feature_columns]
 # ------------------ Splitting ------------------
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.1, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
@@ -125,8 +138,9 @@ y_pred_z = xgb_model_z.predict(X_test)
 # Reconstruct theta from sin and cos
 pred_theta = np.arctan2(y_pred_sin, y_pred_cos)
 true_theta = np.arctan2(y_test["sin_theta"], y_test["cos_theta"])
-if test_loc == "full":
-  pred_theta[np.isclose(true_theta, np.pi)] = -pred_theta[np.isclose(true_theta, np.pi)]
+delta = pred_theta - true_theta
+pred_theta = pred_theta - 2*np.pi * (delta > np.pi) + 2*np.pi * (delta < -np.pi)
+
 
 # ------------------ Evaluation ------------------
 rmse_theta = np.sqrt(mean_squared_error(true_theta, pred_theta)) * r
