@@ -149,14 +149,14 @@ def plot_tankflatten_predictions(
         FP_mask (array-like): Boolean mask for false positives
     """
     circumference = 2 * np.pi * r
-
+    
     true_theta = np.arctan2(y_test["sin_theta"], y_test["cos_theta"])
 
     # Flattened coordinates
     true_x_flat = y_test["z"].to_numpy()
     true_y_flat = (r * true_theta).to_numpy()
-    pred_x_flat = y_pred_z
-    pred_y_flat = r * pred_theta
+    pred_x_flat = np.asarray(y_pred_z)
+    pred_y_flat = np.asarray(r * pred_theta)
 
     # --- Plotting ---
     plt.figure(figsize=(10, 6))

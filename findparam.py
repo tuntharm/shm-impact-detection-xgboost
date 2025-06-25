@@ -37,12 +37,12 @@ num_rows, num_columns = df.shape
 print(f"Rows: {num_rows}, Columns: {num_columns}")
 
 # ---------------- FILTER OUT AMBIGUOUS LOCATIONS ----------------
-ambiguous_locs = [8, 18, 28, 38]  # Loc column indicating ambiguous hits
-if "Loc" in df.columns:
-    df = df[~df["Loc"].isin(ambiguous_locs)].reset_index(drop=True)
-    print(f"Data filtered. Remaining rows: {len(df)}")
+# ambiguous_locs = [8, 18, 28, 38]  # Loc column indicating ambiguous hits
+# if "Loc" in df.columns:
+#     df = df[~df["Loc"].isin(ambiguous_locs)].reset_index(drop=True)
+#     print(f"Data filtered. Remaining rows: {len(df)}")
 
-#df["is_ambiguous"] = df["Loc"].isin([8, 18, 28, 38]).astype(int)
+df["is_ambiguous"] = df["Loc"].isin([8, 18, 28, 38]).astype(int)
 
 
 #--------------TRAINING--------------------------

@@ -10,6 +10,9 @@ import glob
 from xgboost.callback import EarlyStopping
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+import os
+os.environ["TF_XLA_FLAGS"] = "--tf_xla_enable_xla_devices=false"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 
@@ -22,14 +25,14 @@ r = 11.55
 z_max = 45
 #---------------------------------------
 error_distance = 3.5 # threshold
-test_loc = "full"  # or "full"
+test_loc = "top"  # or "full"
 #---------------------------------------
 
 # data = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/Features_stlham_p1_tank.csv"
 # df = pd.read_csv(data)
 
-folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/16april"
-
+#folder_path = "/mnt/c/Users/tunta/OneDrive - Imperial College London/Y4 work/FYP/FYP_Data/Processed_Data/tank/16april"
+folder_path = "16april"
 # Get all CSV files in the folder (ignoring subfolders)
 csv_files = [f for f in glob.glob(os.path.join(folder_path, "*.csv")) if os.path.isfile(f)]
 
@@ -57,7 +60,7 @@ ambiguous_locs = [8, 18, 28, 38]
 
 # ---------------------- MARK AMBIGUOUS ----------------------
 # Uncomment to mark ambiguous samples
-df["is_ambiguous"] = df["Loc"].isin(ambiguous_locs).astype(int)
+# df["is_ambiguous"] = df["Loc"].isin(ambiguous_locs).astype(int)
 
 # ---------------------- FILTER AMBIGUOUS ROWS ----------------------
 # Uncomment to remove ambiguous samples
@@ -164,6 +167,7 @@ precision = true_positives / (true_positives + false_positives)
 recall = true_positives / len(y_test)
 
 # ------------------ Summary ------------------
+
 print("\n📊 Model Summary")
 print(f"{'Metric':<30} | {'Theta':>10} | {'Z':>10}")
 print("-" * 60)
@@ -227,7 +231,8 @@ plt.title("Top 10 Feature Importances for Loc_Z")
 # ---------------------------------
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
-
+import time
+start = time.time()
 # ----------- Features & Target -----------
 feature_columns = df.loc[:, "ToA_S1":"Force_N"].columns
 X_cls = df[feature_columns]
@@ -255,6 +260,8 @@ impact_clf.fit(X_train_cls, y_train_cls)
 # ----------- Evaluate -----------
 y_pred_cls = impact_clf.predict(X_test_cls)
 
+end = time.time()
+print(f"Runtime: {end - start:.4f} seconds")
 print("Classification Report:")
 print(classification_report(y_test_cls, y_pred_cls, digits=4))
 
@@ -275,7 +282,7 @@ plt.tight_layout()
 plt.show()
 
 #filename = 'predictions_XGB.mat'
-#save_predictions(y_test, y_pred_theta, y_pred_z, filename, rmse)
+# #save_predictions(y_test, y_pred_theta, y_pred_z, filename, rmse)
 
 
 
