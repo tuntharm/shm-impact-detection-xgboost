@@ -63,6 +63,8 @@ python scripts/grouped_validate.py --data-dir data/processed/tank/16april --grou
 
 This is included as validation tooling, not as an extra report result claim.
 
+The CI workflow verifies generated metrics, grouped-validation metrics, inference CSV structure, and saved model files with `scripts/verify_public_outputs.py`. It checks artifact sanity without pinning metric values as public claims.
+
 ## Interpretation
 
 The report positions XGBoost as the strongest overall public-facing model because it combines low localisation error, strong hard/soft classification, and much lower runtime than the neural baselines. ConvXGB slightly improves classification accuracy in one comparison table, but it costs substantially more runtime and does not improve localisation error.

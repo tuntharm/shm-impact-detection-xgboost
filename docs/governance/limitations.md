@@ -29,7 +29,7 @@ Known risks for future work:
 
 ## Licensing
 
-No open-source license has been selected. Until a license is added, treat the repository as view-only for evaluation, citation, and discussion. Reuse, redistribution, or commercial application requires explicit permission from the owner.
+No open-source license has been selected. Until a license is added, treat the repository as view-only for evaluation, citation, and discussion. Reuse, redistribution, modification, or commercial application requires explicit permission from the owner. See [`../../NOTICE.md`](../../NOTICE.md).
 
 ## Contact
 

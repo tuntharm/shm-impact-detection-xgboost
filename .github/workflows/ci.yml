@@ -25,6 +25,4 @@ jobs:
           python scripts/train_xgboost.py --data-dir data/processed/tank/16april --test-loc top --output-dir outputs/ci_xgboost --n-estimators 10
           python scripts/predict_xgboost.py --data-dir data/processed/tank/16april --model-dir outputs/ci_xgboost/models --output-csv outputs/ci_xgboost/inference_predictions.csv --test-loc top
           python scripts/grouped_validate.py --data-dir data/processed/tank/16april --group-by Loc --folds 3 --test-loc top --output-dir outputs/ci_grouped --n-estimators 10
-          test -f outputs/ci_xgboost/metrics.json
-          test -f outputs/ci_xgboost/inference_predictions.csv
-          test -f outputs/ci_grouped/grouped_validation_metrics.json
+          python scripts/verify_public_outputs.py --metrics outputs/ci_xgboost/metrics.json --predictions outputs/ci_xgboost/inference_predictions.csv --grouped-metrics outputs/ci_grouped/grouped_validation_metrics.json --model-dir outputs/ci_xgboost/models

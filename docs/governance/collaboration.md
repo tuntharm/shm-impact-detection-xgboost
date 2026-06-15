@@ -30,8 +30,11 @@ A serious pilot should define:
 - Report-backed baseline metrics and model comparison.
 - Compact processed sample data with schema and checksums.
 - Public commands for training, inference, row-shuffled validation, and grouped validation.
+- CI artifact verification through `scripts/verify_public_outputs.py`.
 - Limitations and data-access notes for due diligence.
 
 ## What Is Not Yet Claimed
 
 The repository does not claim certified inspection readiness, transfer to arbitrary structures, damage severity classification, or anonymous full-data reproducibility. Those would require additional data release, grouped validation, and deployment-specific verification.
+
+Usage is evaluation-only unless the owner grants explicit permission; see [`../../NOTICE.md`](../../NOTICE.md).

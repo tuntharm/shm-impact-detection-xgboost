@@ -1,5 +1,7 @@
 # Deep Learning Approach to Impact Detection in Sensorized Panels
 
+[![CI](https://github.com/tuntharm/FYP/actions/workflows/ci.yml/badge.svg)](https://github.com/tuntharm/FYP/actions/workflows/ci.yml)
+
 Research code, processed sample data, and documentation for an Imperial College London final-year project on passive impact detection for structural health monitoring (SHM).
 
 The project studies a sensorised cylindrical composite hydrogen-tank demonstrator instrumented with piezoelectric transducers. Impact waveforms are converted into interpretable signal features, then XGBoost models infer both impact location and hard/soft impact class. The public repository is organised as a compact evidence pack rather than a raw laboratory data dump.
@@ -155,4 +157,4 @@ For deeper detail:
 
 ## Status
 
-No open-source license has been selected yet, so the code and data should be treated as view-only unless permission is granted by the repository owner. See [`SECURITY.md`](SECURITY.md) and [`CITATION.cff`](CITATION.cff) for contact and citation metadata.
+No open-source license has been selected yet, so the code and data should be treated as view-only unless permission is granted by the repository owner. See [`NOTICE.md`](NOTICE.md), [`SECURITY.md`](SECURITY.md), and [`CITATION.cff`](CITATION.cff) for usage, contact, and citation metadata.
