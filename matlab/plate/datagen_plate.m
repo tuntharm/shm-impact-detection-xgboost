@@ -13,12 +13,16 @@ variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
 %%% ==========================
 
 
-%----MAC-----
-% main_folder = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/';
-% output_folder = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Processed_Data/';
-%----WINDOW----
-main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Old";
-output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data";
+% Configure with environment variables for portable reruns.
+main_folder = string(getenv("FYP_PLATE_RAW_DIR"));
+if strlength(main_folder) == 0
+    main_folder = "data/raw/plate";
+end
+
+output_folder = string(getenv("FYP_PLATE_PROCESSED_DIR"));
+if strlength(output_folder) == 0
+    output_folder = "data/processed/plate";
+end
 
 if ~exist(output_folder, 'dir')
     mkdir(output_folder);

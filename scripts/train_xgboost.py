@@ -7,6 +7,7 @@ from pathlib import Path
 
 import matplotlib
 import numpy as np
+import pandas as pd
 
 matplotlib.use("Agg")
 
@@ -30,7 +31,7 @@ from fyp_impact.geometry import (  # noqa: E402
     parse_location_set,
     top_location_mask,
 )
-from fyp_impact.metrics import regression_metrics  # noqa: E402
+from fyp_impact.metrics import regression_metrics, spatial_errors  # noqa: E402
 from fyp_impact.models import (  # noqa: E402
     default_xgb_classifier_params,
     default_xgb_regressor_params,
@@ -59,6 +60,8 @@ def main() -> None:
     args = parse_args()
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    model_dir = output_dir / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
     top_locs = parse_location_set(args.top_locs) if args.test_loc == "top" else DEFAULT_TOP_LOCS
 
     raw_df = load_feature_data(args.data_dir)
@@ -84,6 +87,7 @@ def main() -> None:
     loc_models = train_localisation_models(x_train, y_train, x_val, y_val, params=regressor_params)
     pred_theta, pred_z = loc_models.predict(x_test)
     true_theta = np.arctan2(y_test["sin_theta"], y_test["cos_theta"])
+    localisation_errors = spatial_errors(true_theta, pred_theta, y_test["z"], pred_z, radius=args.radius)
     localisation_metrics = regression_metrics(
         true_theta=true_theta,
         pred_theta=pred_theta,
@@ -92,6 +96,22 @@ def main() -> None:
         radius=args.radius,
         threshold_cm=args.threshold_cm,
     )
+    loc_models.sin_model.save_model(str(model_dir / "localisation_sin_theta.json"))
+    loc_models.cos_model.save_model(str(model_dir / "localisation_cos_theta.json"))
+    loc_models.z_model.save_model(str(model_dir / "localisation_z.json"))
+
+    localisation_predictions = pd.DataFrame(
+        {
+            "Loc": test_locations,
+            "true_theta": true_theta,
+            "pred_theta": pred_theta,
+            "true_z": y_test["z"],
+            "pred_z": pred_z,
+            "spatial_error_cm": localisation_errors,
+            "within_threshold": localisation_errors <= args.threshold_cm,
+        }
+    )
+    localisation_predictions.to_csv(output_dir / "predictions_localisation.csv", index=False)
 
     save_flattened_tank_plot(
         output_dir / "flattened_tank_predictions.png",
@@ -129,6 +149,13 @@ def main() -> None:
         y_pred_cls = classifier.predict(x_test_cls)
         report = classification_report(y_test_cls, y_pred_cls, digits=4, output_dict=True)
         matrix = confusion_matrix(y_test_cls, y_pred_cls)
+        classifier.save_model(str(model_dir / "impact_type_classifier.json"))
+        pd.DataFrame(
+            {
+                "true_impact_type": y_test_cls.reset_index(drop=True),
+                "pred_impact_type": y_pred_cls,
+            }
+        ).to_csv(output_dir / "predictions_classification.csv", index=False)
         save_confusion_matrix(output_dir / "confusion_matrix.png", matrix)
         save_feature_importance(output_dir / "importance_classification.png", classifier, "Top features for impact type")
         metrics["classification_features"] = cls_features

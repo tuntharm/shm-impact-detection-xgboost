@@ -1,49 +1,78 @@
 # Deep Learning Approach to Impact Detection in Sensorized Panels
 
-This repository contains the code and processed sample data behind my Imperial College London final-year project on impact localisation and classification for structural health monitoring (SHM).
+Research code, processed sample data, and documentation for an Imperial College London final-year project on passive impact detection for structural health monitoring (SHM).
 
-The project studies passive PZT sensing on a cylindrical composite hydrogen tank. Instead of relying on a full physics-based wave model, it extracts waveform features such as time of arrival, amplitude, signal energy, and force, then trains machine-learning models to infer impact position and impact type.
+The project studies a sensorised cylindrical composite hydrogen-tank demonstrator instrumented with piezoelectric transducers. Impact waveforms are converted into interpretable signal features, then XGBoost models infer both impact location and hard/soft impact class. The public repository is organised as a compact evidence pack rather than a raw laboratory data dump.
 
-## Results Snapshot
+## Why This Matters
 
-From the final report:
+Composite tanks, panels, and other safety-critical lightweight structures can experience low-velocity impacts that are hard to inspect visually. This project explores a practical SHM workflow for turning passive PZT voltage traces into:
 
-- Localisation: XGBoost achieved 1.07 cm RMSE under 10-fold cross-validation.
-- Threshold accuracy: 93.9% of predictions fell within a 3.5 cm spatial error threshold.
-- Classification: hard versus soft impact classification reached 99.4% accuracy.
-- Runtime: the XGBoost workflow was fast enough for practical offline evaluation, with classification and localisation runtimes reported in seconds on the test workflow.
+- a localised impact point on a curved surface,
+- a hard/soft impact-type classification,
+- a reproducible feature and model pipeline that can be adapted to other sensor layouts.
 
-These headline figures come from the final report and the cloud/local experiments. Re-running the scripts here on the included sample data may produce slightly different values because the public repo intentionally contains only compact processed CSVs rather than every raw experiment asset.
+The current implementation is a research prototype, not a certified inspection product. It is useful as a signal-processing and ML reference for impact localisation, dataset design, feature extraction, and SHM consultancy discussions.
 
-## Workflow
+## Report-Backed Results
+
+The headline metrics below are quoted from the submitted final report, now committed at [`docs/report/FYP_02048996.pdf`](docs/report/FYP_02048996.pdf). The public sample commands reproduce the workflow on compact processed CSVs; they are not claimed to exactly reproduce the full report tables because the raw/full A/B/C experiment folders remain access-controlled.
+
+| Evaluation setting | Localisation RMSE | Threshold accuracy | Classification accuracy | Runtime |
+| --- | ---: | ---: | ---: | ---: |
+| XGBoost, B+C Top, 10-fold CV | 1.07 +/- 0.23 cm | 93.86 +/- 2.25% within 3.5 cm | 99.36 +/- 1.00% | 58.06 s localisation, 4.89 s classification |
+| ConvXGB, B+C Top, 10-fold CV | 2.01 +/- 0.39 cm | 91.00 +/- 3.59% | 99.63 +/- 0.55% | 187.99 s localisation, 49.57 s classification |
+| ANN, B+C Top, 10-fold CV | 3.83 +/- 0.39 cm | 77.60 +/- 4.96% | 96.04 +/- 1.92% | 159.30 s localisation, 80.13 s classification |
+
+See [`results/README.md`](results/README.md) for the report table traceability and [`comparison/README.md`](comparison/README.md) for model comparisons and interpretation.
+
+## Technical Workflow
 
 ```mermaid
 flowchart LR
-    A["Passive impact tests"] --> B["PZT sensor signals"]
-    B --> C["MATLAB signal processing"]
+    A["Impact tests on tank / plate"] --> B["LabVIEW voltage traces"]
+    B --> C["MATLAB filtering and feature extraction"]
     C --> D["Processed feature CSVs"]
-    D --> E["Geometry-aware feature encoding"]
-    E --> F["XGBoost localisation"]
-    E --> G["Hard/soft classification"]
-    F --> H["RMSE and threshold accuracy"]
-    G --> I["Classification report and confusion matrix"]
+    D --> E["Python data loader"]
+    E --> F["Sensor geometry and cylindrical targets"]
+    F --> G["XGBoost sin(theta), cos(theta), z regressors"]
+    F --> H["XGBoost hard/soft classifier"]
+    G --> I["RMSE, 3.5 cm threshold accuracy, flattened tank plot"]
+    H --> J["Classification report, confusion matrix, feature importance"]
 ```
 
-## Repository Layout
+The core modelling choice is to avoid direct angular regression across the `-pi/pi` discontinuity. The localisation target is split into three regressions: `sin(theta)`, `cos(theta)`, and axial `z`; the predicted angle is reconstructed with `atan2`. Error is measured on the unwrapped cylindrical surface using radius `11.55 cm`.
 
-- `src/fyp_impact/` - reusable Python package for data loading, geometry features, models, metrics, and plotting.
-- `scripts/` - runnable training, cross-validation, tuning, and optional ANN baseline entrypoints.
-- `data/processed/tank/16april/` - compact processed CSV sample used by the public reproducibility commands.
-- `matlab/tank/` and `matlab/plate/` - MATLAB signal-processing and feature-extraction scripts from the original project.
-- `assets/plots/` - report/development plots preserved as visual reference.
-- `tests/` - lightweight pytest coverage for the reusable Python logic.
+## Repository Map
+
+- [`src/fyp_impact/`](src/fyp_impact/) - reusable Python package for data loading, geometry, XGBoost models, metrics, and plotting.
+- [`scripts/`](scripts/) - runnable training, inference, row-shuffled validation, grouped validation, tuning, optional ANN, and public demo entrypoints.
+- [`data/processed/tank/16april/`](data/processed/tank/16april/) - compact processed tank CSV sample for public workflow checks.
+- [`matlab/`](matlab/) - original MATLAB signal-processing and feature-extraction stage for tank and plate data.
+- [`docs/methodology/`](docs/methodology/) - XGBoost design, feature extraction, validation limits, and reproducibility notes.
+- [`results/`](results/) - report-backed metrics and public-sample output expectations.
+- [`comparison/`](comparison/) - XGBoost, ConvXGB, and ANN comparison notes.
+- [`docs/governance/`](docs/governance/) - limitations, data governance, and collaboration/pilot framing.
+- [`notebooks/`](notebooks/) - Google Drive / Colab provenance without committing bulky notebook outputs.
+- [`assets/plots/`](assets/plots/) - preserved figures from development and report preparation.
+- [`tests/`](tests/) - lightweight pytest coverage for loader, geometry, and metrics logic.
 
 ## Setup
+
+Use Python 3.11 if available. The Colab notebook environment used Python 3.11.12 with XGBoost 2.1.4, NumPy 2.0.2, Pandas 2.2.2, and scikit-learn 1.6.1; the requirements file keeps broader compatible ranges for local installs.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+On Windows PowerShell:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
 For the optional TensorFlow ANN baseline:
@@ -52,52 +81,78 @@ For the optional TensorFlow ANN baseline:
 pip install -r requirements-optional.txt
 ```
 
-## Reproduce the XGBoost Sample Run
+## Reproduce the Public XGBoost Workflow
 
-Train localisation and hard/soft classification on the included processed tank sample:
+Train localisation and hard/soft classification on the bundled processed tank sample:
 
 ```bash
 python scripts/train_xgboost.py --data-dir data/processed/tank/16april --test-loc top --output-dir outputs/xgboost
 ```
 
-Run 10-fold validation:
+Run 10-fold validation on the same sample:
 
 ```bash
 python scripts/cross_validate.py --data-dir data/processed/tank/16april --folds 10 --test-loc top
 ```
 
-The scripts save metrics and plots under `outputs/`, including:
+Run grouped validation as a stricter stress test that holds related groups out together:
+
+```bash
+python scripts/grouped_validate.py --data-dir data/processed/tank/16april --group-by Loc --folds 5 --test-loc top
+```
+
+After training, run inference from the saved model JSON files:
+
+```bash
+python scripts/predict_xgboost.py --data-dir data/processed/tank/16april --model-dir outputs/xgboost/models --output-csv outputs/xgboost/inference_predictions.csv --test-loc top
+```
+
+The training command writes:
 
 - `metrics.json`
+- `predictions_localisation.csv`
+- `predictions_classification.csv`
 - `flattened_tank_predictions.png`
-- feature-importance plots
 - `confusion_matrix.png`
-- `cross_validation_metrics.json`
+- feature-importance plots
+- XGBoost JSON model files under `outputs/xgboost/models/`
 
-## Data Notes
+PowerShell users can run the same public demo with:
 
-The bundled CSVs are processed feature tables, not raw sensor recordings. The loader accepts repeated `--data-dir` arguments and only reads CSV files directly inside each folder. This makes A/B/C combinations explicit and avoids accidentally mixing nested experimental variants.
+```powershell
+.\scripts\run_public_demo.ps1
+```
 
-The larger Google Drive folders used during the project are access-controlled unless the owner changes sharing permissions:
+The PowerShell demo uses reduced defaults for speed; the explicit commands above show the report-style public defaults.
+
+## Data Scope
+
+The committed CSVs are processed feature tables, not raw voltage traces. The loader accepts one or more `--data-dir` values and reads only CSV files directly inside each directory. This makes A/B/C combinations explicit and avoids accidental recursive mixing:
+
+```bash
+python scripts/train_xgboost.py --data-dir data/processed/tank/16april --data-dir data/processed/tank/16april/A
+```
+
+The larger project folders are access-controlled unless the owner changes sharing permissions:
 
 - [Main project and Colab folder](https://drive.google.com/drive/folders/1eV1nWm934i87P8r-wzCiRNaIlF0wvnsz)
 - [A/B/C processed data folder](https://drive.google.com/drive/folders/1XZoWibuwQfjbE8UywY4qdUQTbJVWTcx2)
 - [`16april` processed CSV folder](https://drive.google.com/drive/folders/1fUreyAiRBNO5NepapWqen2SD_-f8QQnH)
 
-Selected Colab notebooks:
+See [`data/README.md`](data/README.md) for the public data dictionary, row counts, and checksums.
 
-- [unitcircle_XGBtrain.ipynb](https://colab.research.google.com/drive/1Rxi9MhHp9W4_14hnJDhh1dj4H2ndVi_O)
-- [main_XGBtrain.ipynb](https://colab.research.google.com/drive/1Xd44GR7gjjo9EV3DRD9GtuzAgg8PXUty)
-- [main_ConvXGBtrain.ipynb](https://colab.research.google.com/drive/1XMeru_X4vyV56MFSewB4WZdJEPNcG7cL)
-- [unitcircle_ANNtrain.ipynb](https://colab.research.google.com/drive/1HBLRAsPXaChXX9bRE8JD5UXbOlMaZgLz)
+## Method Notes
 
-## Model Details
+The feature pipeline extracts per-sensor time of arrival, peak amplitude, signal energy, and impact force from passive waveforms. Tank locations are mapped to cylindrical `(theta, z)` targets, and eight sensor positions are appended as fixed geometry features.
 
-The main localisation model trains three XGBoost regressors for `sin(theta)`, `cos(theta)`, and `z`. Angular position is reconstructed with `atan2`, which avoids discontinuities at the `-pi`/`pi` boundary. Localisation error is evaluated on the unwrapped cylindrical surface using the tank radius.
+For deeper detail:
 
-The classification model trains an XGBoost binary classifier on waveform-derived features to distinguish soft and hard impacts. The optional ANN script is retained as a comparison baseline, but XGBoost is the primary public workflow.
+- [`docs/methodology/feature-extraction.md`](docs/methodology/feature-extraction.md) documents the MATLAB raw-signal-to-CSV lineage.
+- [`docs/methodology/xgboost.md`](docs/methodology/xgboost.md) documents the XGBoost modelling strategy and hyperparameters.
+- [`docs/methodology/reproducibility.md`](docs/methodology/reproducibility.md) documents what can and cannot be reproduced from the public sample.
+- [`docs/governance/limitations.md`](docs/governance/limitations.md) documents deployment limits, leakage risks, and data-access assumptions.
+- [`docs/governance/collaboration.md`](docs/governance/collaboration.md) frames pilot use cases and what a partner evaluation should check next.
 
-## Notes
+## Status
 
-- The full final report PDF is not committed because it contains submission metadata and is better cited separately.
-- No open-source license has been selected yet. Please contact the repository owner before reusing the work beyond viewing or evaluation.
+No open-source license has been selected yet, so the code and data should be treated as view-only unless permission is granted by the repository owner. See [`SECURITY.md`](SECURITY.md) and [`CITATION.cff`](CITATION.cff) for contact and citation metadata.

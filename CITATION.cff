@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this project for evaluation or discussion, please cite the repository and final report."
+title: "Deep Learning Approach to Impact Detection in Sensorized Panels"
+authors:
+  - family-names: "Tharm"
+    given-names: "Tun"
+repository-code: "https://github.com/tuntharm/FYP"
+type: software
+date-released: 2026-06-16
+abstract: "Research code and processed sample data for passive PZT impact localisation and hard/soft impact classification on sensorised panels and a cylindrical composite tank."

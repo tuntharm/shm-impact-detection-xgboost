@@ -1,5 +1,5 @@
 clear, clc
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Old\stlham_p10_flat\stlham_l1_p10_flat_1.txt"
+filename = "data/raw/Old/stlham_p10_flat/stlham_l1_p10_flat_1.txt"
 [time, sensor_data, force_data] = read_labview_file_plate(filename);
 
 %% Figure for raw vs. filtered signals% Check the number of sensors

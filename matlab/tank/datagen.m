@@ -9,9 +9,16 @@ variable_names = {'Loc', 'theta', 'z'};
 
 %%% ==========================
 
-%----WINDOW----
-main_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank";
-output_folder = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Processed_Data\tank";
+% Configure with environment variables for portable reruns.
+main_folder = string(getenv("FYP_TANK_RAW_DIR"));
+if strlength(main_folder) == 0
+    main_folder = "data/raw/tank";
+end
+
+output_folder = string(getenv("FYP_TANK_PROCESSED_DIR"));
+if strlength(output_folder) == 0
+    output_folder = "data/processed/tank";
+end
 
 if ~exist(output_folder, 'dir')
     mkdir(output_folder);
@@ -85,12 +92,12 @@ for c = 1:length(case_folders)
         [time, sensor_data, force_data] = read_labview_file(filename);
 
         % Extract features
-        distance = extract_distance_features(filename); % Now 1×3
+        distance = extract_distance_features(filename); % Now 1x3
         force_N = max(convert_voltage_to_force(force_data, impact_type));
-        features = extract_features(time, sensor_data / probe, impact_type, feature_types,force_N); % (num_sensors × num_features)
+        features = extract_features(time, sensor_data / probe, impact_type, feature_types,force_N); % (num_sensors x num_features)
 
         % Store extracted data
-        distance_features(i, :) = distance; % Matches correct shape (1×3)
+        distance_features(i, :) = distance; % Matches correct shape (1x3)
         all_features{i} = features(:)'; % Store as row vector inside a cell
         force_values(i) = force_N;
 

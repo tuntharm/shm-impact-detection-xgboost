@@ -1,5 +1,5 @@
 clear, clc 
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Old\silham_l1_p1_tank_noise.txt"
+filename = "data/raw/Old/silham_l1_p1_tank_noise.txt"
 
     % Read the main sensor data file
     fid = fopen(filename, 'r');

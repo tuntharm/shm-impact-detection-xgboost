@@ -1,7 +1,7 @@
 clc; clear;
 
 % Define folder path
-folder_path = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\plate\stlham_p1_flat";
+folder_path = "data/raw/plate/stlham_p1_flat";
 
 % Get list of all `.txt` files in the folder
 file_list = dir(fullfile(folder_path, '*.txt'));
@@ -44,10 +44,10 @@ for i = 1:length(file_names)
     % Only rename if the names are different
     if ~strcmp(old_name, new_name)
         movefile(old_path, new_path);
-        fprintf('Renamed: %s → %s\n', old_name, new_name);
+        fprintf('Renamed: %s -> %s\n', old_name, new_name);
     else
         fprintf('Skipping (already correct): %s\n', old_name);
     end
 end
 
-disp('✅ File renaming completed.');
+disp('File renaming completed.');

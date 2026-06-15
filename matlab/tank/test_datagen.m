@@ -1,14 +1,14 @@
 clear, clc, close all
 % Flat-----
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\Old\stlham_p10_flat"
+%filename = "data/raw/Old/stlham_p10_flat"
 % MAC------
-%filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/stlham_p1_tank/stlham_l1_p1_tank_1.txt'
-%filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
+%filename = 'data/raw/stlham_p1_tank/stlham_l1_p1_tank_1.txt'
+%filename = 'data/raw/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
 %PC -------
-filename = "C:\Users\tc921\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_2.txt";
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\silham_p1_tank\silham_l1_p1_tank_1.txt"
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\rubham_p10_tank\rubham_l1_p10_tank_1.txt";
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\srubham_p10_tank\srubham_l1_p10_tank_1.txt"
+filename = "data/raw/stlham_p1_tank_new/stlham_l1_p1_tank_2.txt";
+%filename = "data/raw/silham_p1_tank/silham_l1_p1_tank_1.txt"
+%filename = "data/raw/rubham_p10_tank/rubham_l1_p10_tank_1.txt";
+%filename = "data/raw/srubham_p10_tank/srubham_l1_p10_tank_1.txt"
 [time, sensor_data, force_data] = read_labview_file(filename);
 variable_names = {'Loc', 'Loc_X', 'Loc_Y'};
 

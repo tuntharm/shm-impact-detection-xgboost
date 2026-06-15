@@ -1,7 +1,7 @@
 %% Verify Velocity
 %% 1 ToA
 clear, clc
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\tank\stlham_p1_tank_new\stlham_l1_p1_tank_1.txt"
+filename = "data/raw/tank/stlham_p1_tank_new/stlham_l1_p1_tank_1.txt"
 [time, sensor_data,force_data] = read_labview_file(filename);
 impact_type_match = regexp(filename, '(stl|sil|rub|srub)', 'match');
 impact_type = impact_type_match{1};

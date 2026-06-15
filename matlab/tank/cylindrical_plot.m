@@ -55,7 +55,7 @@ surf(X, Y, Z, 'FaceAlpha', 0.4, 'EdgeColor', 'none', 'FaceColor', [0.5 0.5 0.5])
 
 % **Grid Lines: Divide the Cylinder**
 % Divide Z direction into 5 sections
-z_divisions = linspace(0, z_max, 7); % 6 sections → 7 division points
+z_divisions = linspace(0, z_max, 7); % 6 sections -> 7 division points
 theta_grid = linspace(0, 2*pi, 100); % Fine spacing for smooth curves
 
 for i = 1:length(z_divisions)
@@ -66,7 +66,7 @@ for i = 1:length(z_divisions)
 end
 
 % Divide Circumference into 8 sections
-theta_divisions = linspace(0, 2*pi, 9); % 8 sections → 9 division points
+theta_divisions = linspace(0, 2*pi, 9); % 8 sections -> 9 division points
 z_grid = linspace(0, z_max, 100); % Full height
 
 for i = 1:length(theta_divisions)

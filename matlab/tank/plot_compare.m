@@ -2,10 +2,10 @@ clear, clc, close all;
 
 % Define filenames
 % filenames = {
-%     "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank\stlham_l6_p1_tank_1.txt",
-%     "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\silham_p1_tank\silham_l6_p1_tank_1.txt",
-%     "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\rubham_p10_tank\rubham_l6_p10_tank_1.txt",
-%     "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\srubham_p10_tank\srubham_l6_p10_tank_1.txt"
+%     "data/raw/stlham_p1_tank/stlham_l6_p1_tank_1.txt",
+%     "data/raw/silham_p1_tank/silham_l6_p1_tank_1.txt",
+%     "data/raw/rubham_p10_tank/rubham_l6_p10_tank_1.txt",
+%     "data/raw/srubham_p10_tank/srubham_l6_p10_tank_1.txt"
 % };
 
 
@@ -93,10 +93,10 @@ clear, clc, close all;
 %% Plot Compare ToA
 
 filenames = {
-    "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_1.txt",
-    "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l2_p1_tank_1.txt",
-    "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l3_p1_tank_1.txt",
-    "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l4_p1_tank_1.txt",
+    "data/raw/stlham_p1_tank_new/stlham_l1_p1_tank_1.txt",
+    "data/raw/stlham_p1_tank_new/stlham_l2_p1_tank_1.txt",
+    "data/raw/stlham_p1_tank_new/stlham_l3_p1_tank_1.txt",
+    "data/raw/stlham_p1_tank_new/stlham_l4_p1_tank_1.txt",
 
 };
 

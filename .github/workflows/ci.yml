@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Compile Python sources
+        run: python -m compileall src scripts
+      - name: Run tests
+        run: pytest
+      - name: Smoke public workflow
+        run: |
+          python scripts/train_xgboost.py --data-dir data/processed/tank/16april --test-loc top --output-dir outputs/ci_xgboost --n-estimators 10
+          python scripts/predict_xgboost.py --data-dir data/processed/tank/16april --model-dir outputs/ci_xgboost/models --output-csv outputs/ci_xgboost/inference_predictions.csv --test-loc top
+          python scripts/grouped_validate.py --data-dir data/processed/tank/16april --group-by Loc --folds 3 --test-loc top --output-dir outputs/ci_grouped --n-estimators 10
+          test -f outputs/ci_xgboost/metrics.json
+          test -f outputs/ci_xgboost/inference_predictions.csv
+          test -f outputs/ci_grouped/grouped_validation_metrics.json

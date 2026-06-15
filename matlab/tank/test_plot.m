@@ -1,7 +1,7 @@
 clear, clc, close all;
 
 % Select a file to analyze
-% [file, path] = uigetfile("C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p10_flat\stlham_l1_p10_flat_1.txt", 'Select a Raw Data File');
+% [file, path] = uigetfile("data/raw/stlham_p10_flat/stlham_l1_p10_flat_1.txt", 'Select a Raw Data File');
 % 
 % if isequal(file, 0)
 %     disp('No file selected. Exiting.');
@@ -9,15 +9,15 @@ clear, clc, close all;
 % end
 % filename = fullfile(path, file);
 
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p10_flat\stlham_l1_p10_flat_1.txt";
+%filename = "data/raw/stlham_p10_flat/stlham_l1_p10_flat_1.txt";
 % MAC------
-%filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/stlham_p1_tank/stlham_l1_p1_tank_1.txt'
-%filename = '/Users/tuntharm/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Y4 work/FYP/FYP_Data/Raw_Data/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
+%filename = 'data/raw/stlham_p1_tank/stlham_l1_p1_tank_1.txt'
+%filename = 'data/raw/Flat/stlham_p10_flat/stlham_l1_p10_flat_1.txt'
 %PC -------
-filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\stlham_p1_tank_new\stlham_l1_p1_tank_1.txt";
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\silham_p1_tank\silham_l1_p1_tank_1.txt"
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\rubham_p1_tank\rubham_l1_p1_tank_1.txt";
-%filename = "C:\Users\tunta\OneDrive - Imperial College London\Y4 work\FYP\FYP_Data\Raw_Data\srubham_p10_tank\srubham_l1_p10_tank_1.txt"
+filename = "data/raw/stlham_p1_tank_new/stlham_l1_p1_tank_1.txt";
+%filename = "data/raw/silham_p1_tank/silham_l1_p1_tank_1.txt"
+%filename = "data/raw/rubham_p1_tank/rubham_l1_p1_tank_1.txt";
+%filename = "data/raw/srubham_p10_tank/srubham_l1_p10_tank_1.txt"
 [time, sensor_data, ~] = read_labview_file(filename);
 
 raw_signal = sensor_data(:,1);
